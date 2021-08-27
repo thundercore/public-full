@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  thunder-full:
+    container_name: thunder-full
+    image: thundercore/thunder:${IMAGE_VERSION}
+    hostname: thunder-full
+    ports:
+      - 8545:8545
+      - 8546:8546
+      - 9201:9201
+    env_file:
+      - ./.env
+    environment:
+      - CONFIG_PATH=/config/fastpath/pala
+    volumes:
+      # - /var/log/nginx:/var/log/nginx
+      - ./data:/datadir
+      - ./configs:/config/fastpath/pala
+      - ./logs:/logs
+    entrypoint: [ "/tini", "--", "/entrypoint.sh" ]
+    restart: always
