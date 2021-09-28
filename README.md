@@ -8,13 +8,21 @@ Copyright (C) 2017-2021 Thunder Core Inc.
 * Install Docker-compose: https://docs.docker.com/compose/install/
 
 ## Quick Installation
-* This excution will setup a fullnode on **testnet**. If you want to run on **mainnet**, please update `.env.example` file.
+* This excution will setup a fullnode on **testnet**. If you want to run on **mainnet**, please copy `.env.example` to `.env` and modify `.env` file before your execute `./run.sh start`.
 * This excution will download chain data. This may **take hours**.
 ```
 git clone https://github.com/thundercore/public-full.git
 cd public-full
-./start.sh
+./run.sh start
 ```
+
+## Quick Upgrade
+```
+cd public-full
+git fetch --tags; git checkout R2.3.0
+./run.sh upgrade
+```
+
 
 ## Manual Installation
 ### Preparation
@@ -26,12 +34,12 @@ cd public-full
 ```
 # Testnet
 CHAIN=testnet
-IMAGE_VERSION=R2.2
+IMAGE_VERSION=R2.3.0
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-venus-us-east-1.s3.amazonaws.com/venus-latest
 
 # Mainnet
 CHAIN=mainnet
-IMAGE_VERSION=R2.2
+IMAGE_VERSION=R2.3.0
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-zeus-us-east-1.s3.amazonaws.com/zeus-latest
 ```
 
@@ -44,8 +52,8 @@ source .env
 ### 2. Config Files
 * Download from Github
 ```
-wget https://github.com/thundercore/public-full/releases/download/R2.2.0/${CHAIN}-config-R2.2.0.tar.gz
-tar -zxvf ${CHAIN}-config-R2.2.0.tar.gz
+wget https://github.com/thundercore/public-full/releases/download/${IMAGE_VERSION}/${CHAIN}-config-${IMAGE_VERSION}.tar.gz
+tar -zxvf ${CHAIN}-config-${IMAGE_VERSION}.tar.gz
 mv ${CHAIN} configs
 # cp -rp configs-template/${IMAGE_VERSION}/${CHAIN} configs # or you can copy from repo
 ```
@@ -87,7 +95,6 @@ services:
     environment:
       - CONFIG_PATH=/config/fastpath/pala
     volumes:
-      # - /var/log/nginx:/var/log/nginx
       - ./data:/datadir
       - ./configs:/config/fastpath/pala
       - ./logs:/logs

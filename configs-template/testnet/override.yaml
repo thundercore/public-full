@@ -9,10 +9,10 @@ key:
   alterCommPath: /config/fastpath/pala/r2_comm_info.json
   # masterCert: /keystore/master_cert.pem
 pala:
-  fromGenesis:   false
+  fromGenesis: true
   bootnode:
     trusted:
-      - mainnet-boot.thundercore.com:8888
+      - testnet-boot.thundercore.com:8888
   isFullNode: true
 rpc:
   http:
@@ -34,9 +34,11 @@ rpc:
       - web3
   maxDelayBlock: 120
   suspendBuffer: 60s
+  logs:
+    blockRange: 172800
   logRequests: True
 chain:
-  chainID: 108
+  chainID: 18
   genesis: /config/fastpath/pala/genesis.json
 accel:
   txpool:
@@ -56,7 +58,7 @@ eth:
 metrics:
   address: 0.0.0.0:9201
 profiling:
-  enable: true
+  enable: false
   port: 9998
 resourceMonitor:
   enable: true
