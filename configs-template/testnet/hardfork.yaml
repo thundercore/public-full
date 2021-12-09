@@ -29,6 +29,8 @@
     stopBlockSessionOffset: 10799
   consensus:
     infoInHeader: false
+  evm:
+    version: ""
 
 - blocknum: 1
   desc: "Pala hardfork"
@@ -56,3 +58,7 @@
     version: "v3"
   consensus:
     infoInHeader: true
+
+- session: 6150
+  evm:
+    version: "london"

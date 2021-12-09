@@ -40,6 +40,7 @@ rpc:
 chain:
   chainID: 18
   genesis: /config/fastpath/pala/genesis.json
+  snapshotCache: 0
 accel:
   txpool:
     PriceLimit: 1 # 1 ella
