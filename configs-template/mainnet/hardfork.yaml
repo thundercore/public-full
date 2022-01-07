@@ -30,6 +30,8 @@
     burnReward: true
   consensus:
     infoInHeader: false
+  evm:
+    version: ""
 
 - blocknum: 33000000
   desc: Pala hardfork
@@ -69,3 +71,7 @@
     version: "v3"
   consensus:
     infoInHeader: true
+
+- session: 5350
+  evm:
+    version: "london"

@@ -19,7 +19,7 @@ cd public-full
 ## Quick Upgrade
 ```
 cd public-full
-git fetch --tags; git checkout R2.3.0
+git fetch --tags; git checkout R3.0.7
 ./run.sh upgrade
 ```
 
@@ -34,12 +34,12 @@ git fetch --tags; git checkout R2.3.0
 ```
 # Testnet
 CHAIN=testnet
-IMAGE_VERSION=R2.3.0
+IMAGE_VERSION=R3.0.7
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-venus-us-east-1.s3.amazonaws.com/venus-latest
 
 # Mainnet
 CHAIN=mainnet
-IMAGE_VERSION=R2.3.0
+IMAGE_VERSION=R3.0.7
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-zeus-us-east-1.s3.amazonaws.com/zeus-latest
 ```
 
