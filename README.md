@@ -8,12 +8,14 @@ Copyright (C) 2017-2021 ThunderCore Inc.
 * Install Docker-compose: https://docs.docker.com/compose/install/
 
 ## Quick Installation
-* This excution will setup a fullnode on **testnet**. If you want to run on **mainnet**, please copy `.env.example` to `.env` and modify `.env` file before your execute `./run.sh start`.
+* This excution will setup a fullnode.
+  - **testnet**: `./run.sh start testnet`
+  - **mainnet**: `./run.sh start mainnet`
 * This excution will download chain data. This may **take hours**.
 ```
 git clone https://github.com/thundercore/public-full.git
 cd public-full
-./run.sh start
+./run.sh start mainnet
 ```
 
 ## Quick Upgrade
@@ -31,13 +33,16 @@ git fetch --tags; git checkout R3.0.9
 
 * Provide a `.env` file.
 
+.env for Testnet
 ```
 # Testnet
 CHAIN=testnet
 IMAGE_VERSION=R3.0.9
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-venus-us-east-1.s3.amazonaws.com/venus-latest
+```
 
-# Mainnet
+.env for Mainnet
+```# Mainnet
 CHAIN=mainnet
 IMAGE_VERSION=R3.0.9
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-zeus-us-east-1.s3.amazonaws.com/zeus-latest
