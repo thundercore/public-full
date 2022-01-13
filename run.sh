@@ -46,10 +46,12 @@ check_env() {
         if [[ "${chain}" == "mainnet" ]]; then
             source "${DIR_PATH}/.env.example"
             sed -i "s#^CHAIN=.*#CHAIN=${MAINNET_CHAIN}#g" "${DIR_PATH}/.env"
+            sed -i "s#^IMAGE_VERSION=.*#IMAGE_VERSION=${MAINNET_IMAGE_VERSION}#g" "${DIR_PATH}/.env"
             sed -i "s#^RECOVER_CHAIN_DATA_URL=.*#RECOVER_CHAIN_DATA_URL=${MAINNET_RECOVER_CHAIN_DATA_URL}#g" "${DIR_PATH}/.env"
         else
             source "${DIR_PATH}/.env.example"
             sed -i "s#^CHAIN=.*#CHAIN=${TESTNET_CHAIN}#g" "${DIR_PATH}/.env"
+            sed -i "s#^IMAGE_VERSION=.*#IMAGE_VERSION=${TESTNET_IMAGE_VERSION}#g" "${DIR_PATH}/.env"
             sed -i "s#^RECOVER_CHAIN_DATA_URL=.*#RECOVER_CHAIN_DATA_URL=${TESTNET_RECOVER_CHAIN_DATA_URL}#g" "${DIR_PATH}/.env"
         fi
     fi
