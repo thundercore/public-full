@@ -7,6 +7,11 @@ Copyright (C) 2017-2021 ThunderCore Inc.
 * Install Docker: https://docs.docker.com/engine/install/
 * Install Docker-compose: https://docs.docker.com/compose/install/
 
+### Suggested Requirements
+* `4 cores of CPU` and `8 GB of memory (RAM)`.
+* `500 GB` of free disk space.
+* You need to open port `8545`, `8546`, `9201`.
+
 ## Quick Installation
 * This excution will setup a fullnode.
   - **testnet**: `./run.sh start testnet`
