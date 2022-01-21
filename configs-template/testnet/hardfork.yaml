@@ -59,12 +59,6 @@
   consensus:
     infoInHeader: true
 
-- session: 6150
+- session: 6025
   evm:
     version: "london"
-  trustedRNG:
-    version: "testnet-fix-rng-broken"
-
-- session: 6370
-  trustedRNG:
-    version: "v3"
