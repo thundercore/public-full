@@ -12,7 +12,7 @@ pala:
   fromGenesis:   false
   bootnode:
     trusted:
-      - mainnet-boot.thundercore.com:8888
+      - boot-public.thundercore.com:8888
   isFullNode: true
 rpc:
   http:
