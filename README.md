@@ -7,19 +7,26 @@ Copyright (C) 2017-2021 ThunderCore Inc.
 * Install Docker: https://docs.docker.com/engine/install/
 * Install Docker-compose: https://docs.docker.com/compose/install/
 
+### Suggested Requirements
+* `4 cores of CPU` and `8 GB of memory (RAM)`.
+* `500 GB` of free disk space.
+* You need to open port `8545`, `8546`, `9201`.
+
 ## Quick Installation
-* This excution will setup a fullnode on **testnet**. If you want to run on **mainnet**, please copy `.env.example` to `.env` and modify `.env` file before your execute `./run.sh start`.
+* This excution will setup a fullnode.
+  - **testnet**: `./run.sh start testnet`
+  - **mainnet**: `./run.sh start mainnet`
 * This excution will download chain data. This may **take hours**.
 ```
 git clone https://github.com/thundercore/public-full.git
 cd public-full
-./run.sh start
+./run.sh start mainnet
 ```
 
 ## Quick Upgrade
 ```
 cd public-full
-git fetch --tags; git checkout R2.3.0
+git fetch --tags; git checkout R3.0.9
 ./run.sh upgrade
 ```
 
@@ -31,15 +38,18 @@ git fetch --tags; git checkout R2.3.0
 
 * Provide a `.env` file.
 
+.env for Testnet
 ```
 # Testnet
 CHAIN=testnet
-IMAGE_VERSION=R2.3.0
+IMAGE_VERSION=R3.0.9
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-venus-us-east-1.s3.amazonaws.com/venus-latest
+```
 
-# Mainnet
+.env for Mainnet
+```# Mainnet
 CHAIN=mainnet
-IMAGE_VERSION=R2.3.0
+IMAGE_VERSION=R3.0.9
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-zeus-us-east-1.s3.amazonaws.com/zeus-latest
 ```
 

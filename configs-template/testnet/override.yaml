@@ -12,7 +12,7 @@ pala:
   fromGenesis: true
   bootnode:
     trusted:
-      - testnet-boot.thundercore.com:8888
+      - boot-public-testnet.thundercore.com:8888
   isFullNode: true
 rpc:
   http:
@@ -40,6 +40,7 @@ rpc:
 chain:
   chainID: 18
   genesis: /config/fastpath/pala/genesis.json
+  snapshotCache: 0
 accel:
   txpool:
     PriceLimit: 1 # 1 ella
@@ -55,6 +56,7 @@ accel:
 eth:
   logFile: /logs/thunder.eth.log
   logFilter: "trie=4,state=4"
+  txLookupLimit: 0
 metrics:
   address: 0.0.0.0:9201
 profiling:
