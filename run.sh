@@ -2,20 +2,79 @@
 set -e
 
 usage() {
-    echo -e "./$(basename "${0}") task(start/upgrade/stop/down/clean-all) chain(mainnet/testnet)"
-    echo -e " task:"
-    echo -e "     start: start node"
-    echo -e "     upgrade: upgrade node"
-    echo -e "     stop: stop container"
-    echo -e "     down: terminate container"
-    echo -e "     clean-all: clean all config/chaindata/log"
-    echo -e " chain:"
-    echo -e "     mainnet: Thundercore mainnet"
-    echo -e "     testnet: Thundercore testnet, default is testnet"
+    echo -e "./$(basename "${0}") -c [mainnet/testnet] -t [start/upgrade/stop/down/clean-all]"
+    echo -e " -b: specific boot nodes, string, using comma as a separator"
+    echo -e "       ex: \"boot-public.thundercore.com:8888,boot-public-2.thundercore.com:8888\""
+    echo -e "       default: boot-public.thundercore.com:8888(mainnet)"
+    echo -e "                boot-public-testnet.thundercore.com:8888(testnet)"
+    echo -e " -c: specific chain"
+    echo -e "       mainnet: Thundercore mainnet"
+    echo -e "       testnet: Thundercore testnet, default is testnet"
+    echo -e " -t: specific task" 
+    echo -e "       start: start node"
+    echo -e "       load-config: load default configs"
+    echo -e "       force-reload-config: force reload default configs"
+    echo -e "       upgrade: upgrade node"
+    echo -e "       force-upgrade: force upgrade node"
+    echo -e "       stop: stop container"
+    echo -e "       down: terminate container"
+    echo -e "       restart: restart container"
+    echo -e "       clean-all: clean all config/chaindata/log"
+    echo -e " -v: specific version, default is master"
     echo -e " "
     echo -e "Example:"
-    echo -e "    Start mainnet node: ./$(basename "${0}") start mainnet"
-    echo -e "    Stop testnet node: ./$(basename "${0}") stop"
+    echo -e "    Start mainnet node: ./$(basename "${0}") -c mainnet -t start"
+    echo -e "    Stop testnet node: ./$(basename "${0}") -c testnet -t stop"
+}
+
+setup_parameter() {
+    while getopts "b:c:t:v:h?" arg ; do
+        case $arg in
+            b)
+                export BOOT_NODE=$OPTARG
+                ;;
+            c)
+                export CHAIN_NAME=$OPTARG
+                ;;
+            t)
+                export TASK=$OPTARG
+                ;;
+            v)
+                export VERSION=$OPTARG
+                ;;
+            h)
+                usage
+                exit 0
+                ;;
+            ?)
+                echo "unkonw argument"
+                usage
+                exit 1
+                ;;
+        esac
+    done
+
+    if [[ "$(uname)" == "Darwin" ]] ; then
+        DIR_PATH=$(cd "$(dirname "${0}")" || exit; pwd)
+    else
+        DIR_PATH=$(dirname "$(readlink -f "${0}")")
+    fi
+    CHAIN_DATA_DIR="${DIR_PATH}/data"
+    CHAIN_CONFIG_DIR="${DIR_PATH}/configs"
+    CHAIN_LOG_DIR="${DIR_PATH}/logs"
+    DOCKER_COMPOSE_FILE="${DIR_PATH}/docker-compose.yml"
+
+    : "${CHAIN_NAME="testnet"}"
+    : "${VERSION="master"}"
+
+    if [[ "${CHAIN_NAME}" == "mainnet" ]] ; then
+        : "${BOOT_NODE="boot-public.thundercore.com:8888"}"
+    else
+        : "${BOOT_NODE="boot-public-testnet.thundercore.com:8888"}"
+    fi
+    if [[ -z ${TASK} ]]; then
+        usage
+    fi
 }
 
 echo_log() {
@@ -23,27 +82,14 @@ echo_log() {
 }
 
 # Setup env
-##check_env chain_name
-check_env() {
-    local chain
-    chain="${1}"
-    if [[ "$(uname)" == "Darwin" ]] ; then
-        DIR_PATH=$(cd "$(dirname "${0}")" || exit; pwd)
-    else
-        DIR_PATH=$(dirname "$(readlink -f "${0}")")
-    fi
-
-    CHAIN_DATA_DIR="${DIR_PATH}/data"
-    CHAIN_CONFIG_DIR="${DIR_PATH}/configs"
-    CHAIN_LOG_DIR="${DIR_PATH}/logs"
-    DOCKER_COMPOSE_FILE="${DIR_PATH}/docker-compose.yml"
-
+##setup_env chain_name
+setup_env() {
     # Check and prepare .env file
     if [[ ! -f "${DIR_PATH}/.env" ]]; then
         cp "${DIR_PATH}/.env.example" "${DIR_PATH}/.env"
         echo_log ".env copy from .env.example"
         set -x
-        if [[ "${chain}" == "mainnet" ]]; then
+        if [[ "${CHAIN_NAME}" == "mainnet" ]]; then
             source "${DIR_PATH}/.env.example"
             sed -i "s#^CHAIN=.*#CHAIN=${MAINNET_CHAIN}#g" "${DIR_PATH}/.env"
             sed -i "s#^IMAGE_VERSION=.*#IMAGE_VERSION=${MAINNET_IMAGE_VERSION}#g" "${DIR_PATH}/.env"
@@ -57,7 +103,7 @@ check_env() {
     fi
 
     source "${DIR_PATH}/.env"
-    if [[ "${CHAIN}" != "${chain}" ]]; then
+    if [[ "${CHAIN}" != "${CHAIN_NAME}" ]]; then
         echo ".env file existed, and it's chain is ${CHAIN}. EXIT!"
         exit 1
     fi
@@ -65,12 +111,25 @@ check_env() {
 
 # Check and prepare chain config file
 load_chain_config(){
+    local boots boot_list
     if [[ -d "${CHAIN_CONFIG_DIR}" ]] && [[ "${1}" != "force" ]]; then
         :
     else
         cp -rp "${DIR_PATH}/configs-template/${CHAIN}" "${CHAIN_CONFIG_DIR}"
         echo_log "Configs copy from configs-template"
     fi
+
+    boots=$(echo ${BOOT_NODE} | tr "," "\n")
+    boot_list="[ "
+    for boot in ${boots}; do
+        boot_list+="\"${boot}\", "
+    done
+    boot_list="${boot_list:0:-2} ]"
+    if ! type yq; then
+        snap install yq
+    fi
+    yq ".pala.bootnode.trusted = ${boot_list}" < "${CHAIN_CONFIG_DIR}/override.yaml" > "${CHAIN_CONFIG_DIR}/override.yaml-tmp"
+    mv "${CHAIN_CONFIG_DIR}/override.yaml-tmp" "${CHAIN_CONFIG_DIR}/override.yaml"
 }
 
 # Check and prepare chain date file
@@ -103,46 +162,72 @@ load_docker_compose(){
     fi
 }
 
-main(){
-    local task
-    local chain
-
-    if [[ "${#}" -lt 1 ]] || [[ "${#}" -gt 2 ]];  then
-        usage
-        exit 1
+# Git pull new code
+get_code() {
+    echo_log "Get code. Version: ${VERSION}"
+    if [[ $(git ls-remote --tags origin "refs/tags/${VERSION}") != "" ]]; then
+        git fetch origin --tag "${VERSION}:refs/tags/${VERSION}"
+        git checkout "${VERSION}"
     else
-        task="${1}"
-        if [[ "${#}" -eq 2 ]]; then
-            chain="${2}"
+        if [[ $(git rev-parse --abbrev-ref HEAD) == "${VERSION}" ]]; then
+            git pull origin "${VERSION}"
+        elif git fetch origin "${VERSION}:${VERSION}"; then
+            if git checkout "${VERSION}"; then
+                git pull origin "${VERSION}"
+            fi
         else
-            chain="testnet"
+            git checkout "${VERSION}"
         fi
-
     fi
+}
 
-    check_env "${chain}"
+main(){
 
-    if [[ "${task}" == "start" ]]; then
+    setup_parameter "$@"
+
+    pushd "${DIR_PATH}" 1>/dev/null || return 1
+
+    setup_env
+
+    if [[ "${TASK}" == "start" ]]; then
         echo_log "Start chain"
         load_chain_config notForce
         load_chain_data
         load_docker_compose
         mkdir -p "${CHAIN_LOG_DIR}"
         docker-compose up -d
-    elif [[ "${task}" == "upgrade" ]]; then
-        echo_log "Upgrade chain"
-        reload_image_version
+    elif [[ "${TASK}" == "load-config" ]]; then
+        echo_log "Load configs"
+        load_chain_config notForce
+        docker-compose restart
+    elif [[ "${TASK}" == "force-reload-config" ]]; then
+        echo_log "Force reload configs"
         load_chain_config force
+        docker-compose restart
+    elif [[ "${TASK}" == "upgrade" ]]; then
+        echo_log "Upgrade chain"
+        get_code
+        load_chain_config notForce
+        reload_image_version
         docker-compose up -d
-    elif [[ "${task}" == "stop" ]]; then
+    elif [[ "${TASK}" == "force-upgrade" ]]; then
+        echo_log "Force upgrade chain"
+        get_code
+        load_chain_config force
+        reload_image_version
+        docker-compose up -d
+    elif [[ "${TASK}" == "stop" ]]; then
         echo_log "Stop container"
         docker-compose stop
-    elif [[ "${task}" == "down" ]]; then
+    elif [[ "${TASK}" == "down" ]]; then
         echo_log "Terminate container"
         docker-compose down
-    elif [[ "${task}" == "clean-all" ]]; then
+    elif [[ "${TASK}" == "restart" ]]; then
+        echo_log "Restart container"
+        docker-compose restart
+    elif [[ "${TASK}" == "clean-all" ]]; then
         echo_log "Clean all"
-        docker-compose down 2>/dev/null|| true
+        docker-compose down 2>/dev/null || true
         rm -f "${DIR_PATH}/.env"
         rm -rf "${CHAIN_DATA_DIR}"
         rm -rf "${CHAIN_CONFIG_DIR}"
@@ -153,6 +238,7 @@ main(){
         exit 1
     fi
     echo_log "Done"
+    popd 1>/dev/null || return 0
 }
 
 main "$@"
