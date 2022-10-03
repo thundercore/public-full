@@ -19,6 +19,7 @@ usage() {
     echo -e "       stop: stop container"
     echo -e "       down: terminate container"
     echo -e "       restart: restart container"
+    echo -e "       reload-chaindata: reload chaindata"
     echo -e "       clean-all: clean all config/chaindata/log"
     echo -e " -v: specific version, default is master"
     echo -e " "
@@ -137,7 +138,8 @@ load_chain_data(){
     if [[ ! -d "${CHAIN_DATA_DIR}" ]]; then
         mkdir "${CHAIN_DATA_DIR}"
     fi
-    if [[ ! -f "${CHAIN_DATA_DIR}/thunder/chaindata/CURRENT" ]]; then
+    if [[ "${1}" == "force" ]] || [[ ! -f "${CHAIN_DATA_DIR}/thunder/chaindata/CURRENT" ]]; then
+        rm -rf "${CHAIN_DATA_DIR:?}/"* || true
         wget -q -O "${CHAIN_DATA_DIR}"/latest "${RECOVER_CHAIN_DATA_URL}"
         CHAINDATA_URL=$(cut -d , -f 1 "${CHAIN_DATA_DIR}"/latest)
         # MD5_CHECKSUM=$(cut -d , -f 2 "${CHAIN_DATA_DIR}"/latest)
@@ -192,7 +194,7 @@ main(){
     if [[ "${TASK}" == "start" ]]; then
         echo_log "Start chain"
         load_chain_config notForce
-        load_chain_data
+        load_chain_data notForce
         load_docker_compose
         mkdir -p "${CHAIN_LOG_DIR}"
         docker-compose up -d
@@ -225,6 +227,10 @@ main(){
     elif [[ "${TASK}" == "restart" ]]; then
         echo_log "Restart container"
         docker-compose restart
+    elif [[ "${TASK}" == "reload-chaindata" ]]; then
+        echo_log "Restart container"
+        docker-compose down
+        load_chain_data force
     elif [[ "${TASK}" == "clean-all" ]]; then
         echo_log "Clean all"
         docker-compose down 2>/dev/null || true
