@@ -14,20 +14,20 @@ Copyright (C) 2017-2022 Thunder Token Ltd.
 
 ## Quick Installation
 * This excution will setup a fullnode.
-  - **testnet**: `./run.sh start testnet`
-  - **mainnet**: `./run.sh start mainnet`
+  - **testnet**: `./run.sh -c testnet -t start`
+  - **mainnet**: `./run.sh -c mainnet -t start`
 * This excution will download chain data. This may **take hours**.
 ```
 git clone https://github.com/thundercore/public-full.git
 cd public-full
-./run.sh start mainnet
+./run.sh -c mainnet -t start
 ```
 
 ## Quick Upgrade
 ```
 cd public-full
-git fetch --tags; git checkout R3.0.9
-./run.sh upgrade
+git fetch --tags; git checkout R3.0.13
+./run.sh -t upgrade
 ```
 
 
@@ -42,14 +42,14 @@ git fetch --tags; git checkout R3.0.9
 ```
 # Testnet
 CHAIN=testnet
-IMAGE_VERSION=R3.0.9
+IMAGE_VERSION=R3.0.13
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-venus-us-east-1.s3.amazonaws.com/venus-latest
 ```
 
 .env for Mainnet
 ```# Mainnet
 CHAIN=mainnet
-IMAGE_VERSION=R3.0.9
+IMAGE_VERSION=R3.0.13
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-zeus-us-east-1.s3.amazonaws.com/zeus-latest
 ```
 
