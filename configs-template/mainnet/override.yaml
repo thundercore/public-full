@@ -1,4 +1,4 @@
-loggingId: public-full-node
+loggingId: <YOUR_LOGGINGID> # e.g. mainnet-public-validator-111
 # debug | info | note | warning | error
 logLevel: 
   /: warn
@@ -7,36 +7,14 @@ key:
   GenesisCommPath: /config/fastpath/pala/genesis_comm_info.json
   KeyStorePath: /keystore
   alterCommPath: /config/fastpath/pala/r2_comm_info.json
-  # masterCert: /keystore/master_cert.pem
+  StakeInKeyId: stakein0
+  VotingKeyId: vote0
 pala:
   fromGenesis:   false
   bootnode:
     trusted:
       - boot-public.thundercore.com:8888
-  isFullNode: true
-rpc:
-  http:
-    hostname: 0.0.0.0
-    port: 8545
-    modules:
-      - eth
-      - thunder
-      - net
-      - web3
-  ws:
-    hostname: 0.0.0.0
-    origins: '*'
-    port: 8546
-    modules:
-      - eth
-      - thunder
-      - net
-      - web3
-  maxDelayBlock: 120
-  suspendBuffer: 60s
-  logs:
-    blockRange: -1
-  logRequests: True
+  isVoter: true
 chain:
   chainID: 108
   genesis: /config/fastpath/pala/genesis.json
@@ -53,6 +31,14 @@ accel:
   blockmaker:
     TimePerBlock: 1s
     TxPerBlockLimit: -1
+bidder:
+  rpcUrl: ws://zeus-prod-full-us-east-1-0.prod.tt-eng.com:8546
+  rewardAddress: <0xREWARD_ADDRESS_REPLACE_ME>
+  bidaddress: 0x30d87bd4D1769437880c64A543bB649a693EB348 # direct bid
+  amount: 9.375e+24
+  bidtxgasprice: 0
+  gasbidprice: 1E+9
+  bidtxpricemax: 1E+12
 eth:
   logFile: /logs/thunder.eth.log
   logFilter: "trie=4,state=4"

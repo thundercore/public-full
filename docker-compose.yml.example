@@ -1,10 +1,10 @@
 version: '3'
 
 services:
-  thunder-full:
-    container_name: thunder-full
+  thunder-voter:
+    container_name: thunder-voter
     image: thundercore/thunder:${IMAGE_VERSION}
-    hostname: thunder-full
+    hostname: thunder-voter
     ports:
       - 8545:8545
       - 8546:8546
@@ -17,5 +17,6 @@ services:
       - ./data:/datadir
       - ./configs:/config/fastpath/pala
       - ./logs:/logs
+      - ./keystore:/keystore
     entrypoint: [ "/tini", "--", "/entrypoint.sh" ]
     restart: always

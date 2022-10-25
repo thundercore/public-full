@@ -1,55 +1,72 @@
-# How to Run a Fullnode on ThunderCore Chain?
+# How to Run a Voter on ThunderCore Chain?
 
 Copyright (C) 2017-2022 Thunder Token Ltd.
 
 ## Before Starting
-### Prerequisite
-* Install Docker: https://docs.docker.com/engine/install/
-* Install Docker-compose: https://docs.docker.com/compose/install/
 
 ### Suggested Requirements
 * `4 cores of CPU` and `8 GB of memory (RAM)`.
 * `500 GB` of free disk space.
 * You need to open port `8545`, `8546`, `9201`.
 
-## Quick Installation
-* This excution will setup a fullnode.
+### Pre-install
+* Install Docker: https://docs.docker.com/engine/install/
+* Install Docker-compose: https://docs.docker.com/compose/install/
+
+
+## Prepare keys and configs
+### 1. Create a key
+Create keys for Voter.
+```
+./run.sh -t genkey
+```
+Key files will be generated under `./keystore`
+
+### 2. Deposit TT
+Deposit TT to the `Stakein` address which is created from the previous step.
+```
+cat stakein-keys.json | grep Addresses -A 2
+```
+
+### 3. Provide Your Logging Id
+Provide a reward address in `configs-template/<CHAIN>/override.yaml` and field `loggingId`
+
+### 4. Provide Reward Address
+Provide a reward address in `configs-template/<CHAIN>/override.yaml` and field `bidder.rewardAddress`
+
+## Quick Start
+* This excution will setup a voter.
   - **testnet**: `./run.sh -c testnet -t start`
   - **mainnet**: `./run.sh -c mainnet -t start`
 * This excution will download chain data. This may **take hours**.
 ```
-git clone https://github.com/thundercore/public-full.git
-cd public-full
 ./run.sh -c mainnet -t start
 ```
 
 ## Quick Upgrade
 ```
-cd public-full
-git fetch --tags; git checkout R3.0.13
+git fetch --tags; git checkout r4.0.1-beta
 ./run.sh -t upgrade
 ```
 
 
 ## Manual Installation
-### Preparation
 
 ### 1. Environment Variables:
 
 * Provide a `.env` file.
 
-.env for Testnet
+Testnet
 ```
-# Testnet
 CHAIN=testnet
-IMAGE_VERSION=R3.0.13
+IMAGE_VERSION=r4.0.1-beta
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-venus-us-east-1.s3.amazonaws.com/venus-latest
 ```
 
-.env for Mainnet
-```# Mainnet
+Mainnet
+```
 CHAIN=mainnet
-IMAGE_VERSION=R3.0.13
+IMAGE_VERSION=r4.0.1-beta
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-zeus-us-east-1.s3.amazonaws.com/zeus-latest
 ```
 
@@ -84,7 +101,7 @@ wget -c "${CHAINDATA_URL}" -O - | tar -C data -zx
 ```
 
 
-### Run a Fullnode
+### Run a Voter
 
 * Provide a `docker-compose.yml` file.
 
@@ -108,6 +125,7 @@ services:
       - ./data:/datadir
       - ./configs:/config/fastpath/pala
       - ./logs:/logs
+      - ./keystone:/keystone
     entrypoint: [ "/tini", "--", "/entrypoint.sh" ]
     restart: always
 ```
@@ -116,28 +134,16 @@ docker-compose up -d
 ```
 
 
-## Check Fullnode Status
+## Check Voter Status
 
 1. Check Log
 ```
-tail -f ./logs/thunder.verbose.log | grep process
+tail -f ./logs/thunder.verbose.log
 ```
 * The process number will increase rapidly.
 
-2. Check Chain ID from Local RPC
+2. If you are a voter, you will receive log with Notarization,
 ```
-$ curl -s -X POST -H "Content-Type: application/json" \
-       --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' 0.0.0.0:8545
+tail -f ./logs/thunder.verbose.log | grep onReceivedNotarization
 
-# {"jsonrpc":"2.0","id":1,"result":"0x12"} # Testnet result
-# {"jsonrpc":"2.0","id":1,"result":"0x6c"} # Mainnet result
 ```
-
-3. Check Blocknumber
-```
-$ curl -s -X POST -H "Content-Type: application/json" \
-       --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' 0.0.0.0:8545
-
-# {"jsonrpc":"2.0","id":1,"result":"0x344368c"}
-```
-* You can compare result on https://scan.thundercore.com/ or https://scan-testnet.thundercore.com/

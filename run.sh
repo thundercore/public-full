@@ -21,6 +21,7 @@ usage() {
     echo -e "       restart: restart container"
     echo -e "       reload-chaindata: reload chaindata"
     echo -e "       clean-all: clean all config/chaindata/log"
+    echo -e "       genkey: generate Stakin and Vote keys for validator"
     echo -e " -v: specific version, default is master"
     echo -e " "
     echo -e "Example:"
@@ -64,6 +65,7 @@ setup_parameter() {
     CHAIN_CONFIG_DIR="${DIR_PATH}/configs"
     CHAIN_LOG_DIR="${DIR_PATH}/logs"
     DOCKER_COMPOSE_FILE="${DIR_PATH}/docker-compose.yml"
+    KEYSTORE_DIR="${DIR_PATH}/keystore"
 
     : "${CHAIN_NAME="testnet"}"
     : "${VERSION="master"}"
@@ -85,6 +87,27 @@ echo_log() {
 # Setup env
 ##setup_env chain_name
 setup_env() {
+    if [[ "${CHAIN_NAME}" == "mainnet" ]] ; then
+        OVERRIDE_FILE="configs-template/mainnet/override.yaml"
+    else
+        OVERRIDE_FILE="configs-template/testnet/override.yaml"
+    fi
+    # Check loggingId in ovveride.yaml
+    LOGGINGID_NEED_REPLACE=$(grep 'loggingId' $OVERRIDE_FILE)
+    if [[ "$LOGGINGID_NEED_REPLACE" == *"YOUR_LOGGINGID"* ]]; then
+        echo "Please provide loggingId in configs-template/<CHAIN>/overide.yaml "
+        exit 1
+    fi
+    # Check rewardAddress in ovveride.yaml
+    REWARD_NEED_REPLACE=$(grep 'rewardAddress' $OVERRIDE_FILE)
+    if [[ "$REWARD_NEED_REPLACE" == *"0xREWARD_ADDRESS_REPLACE_ME"* ]]; then
+        echo "Please provide bidder.rewardAddress(start with 0x) in configs-template/<CHAIN>/overide.yaml "
+        exit 1
+    elif [[ "$REWARD_NEED_REPLACE" != *"0x"* ]]; then
+        echo "Please provide bidder.rewardAddress(start with 0x) in configs-template/<CHAIN>/overide.yaml "
+        exit 1
+    fi
+
     # Check and prepare .env file
     if [[ ! -f "${DIR_PATH}/.env" ]]; then
         cp "${DIR_PATH}/.env.example" "${DIR_PATH}/.env"
@@ -183,6 +206,21 @@ get_code() {
     fi
 }
 
+# Generate stakin and vote keys
+genkey(){
+    if [[ ! -d "${KEYSTORE_DIR}" ]]; then
+        mkdir "${KEYSTORE_DIR}"
+    fi
+    docker run -it -d --entrypoint /bin/sh --name thunder-genkey thundercore/thunder
+    docker exec thunder-genkey sh -c './thundertool --noencrypt genvotekeys --num-keys 1; ./thundertool --noencrypt genstakeinkeys --num-keys 1'
+    docker exec thunder-genkey sh -c 'cat /keys.json' > "${KEYSTORE_DIR}"/keys.json
+    docker exec thunder-genkey sh -c './thundertool --noencrypt getkeys --num-keys 1 --key-type vote --output voter-keys.json --fs-srcdir .; cat voter-keys.json' > "${KEYSTORE_DIR}"/voter-keys.json
+    docker exec thunder-genkey sh -c './thundertool --noencrypt getkeys --num-keys 1 --key-type stakein --output stakein-keys.json --fs-srcdir .; cat stakein-keys.json' > "${KEYSTORE_DIR}"/stakein-keys.json
+    docker rm -f thunder-genkey
+
+    echo "Done. Please check ./keystore file."
+}
+
 main(){
 
     setup_parameter "$@"
@@ -239,6 +277,9 @@ main(){
         rm -rf "${CHAIN_CONFIG_DIR}"
         rm -f "${DIR_PATH}/docker-compose.yml"
         rm -rf "${CHAIN_LOG_DIR}"
+    elif [[ "${TASK}" == "genkey" ]]; then
+        echo_log "Generate Stakin and Vote keys"
+        genkey
     else
         usage
         exit 1
