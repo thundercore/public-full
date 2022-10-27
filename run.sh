@@ -217,6 +217,7 @@ genkey(){
     docker exec thunder-genkey sh -c './thundertool --noencrypt getkeys --num-keys 1 --key-type vote --output voter-keys.json --fs-srcdir .; cat voter-keys.json' > "${KEYSTORE_DIR}"/voter-keys.json
     docker exec thunder-genkey sh -c './thundertool --noencrypt getkeys --num-keys 1 --key-type stakein --output stakein-keys.json --fs-srcdir .; cat stakein-keys.json' > "${KEYSTORE_DIR}"/stakein-keys.json
     docker rm -f thunder-genkey
+    chmod 400 ./keystore/*
 
     echo "Done. Please check ./keystore file."
 }

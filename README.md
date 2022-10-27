@@ -1,4 +1,4 @@
-# How to Run a Voter on ThunderCore Chain?
+# How to Run a Validator on ThunderCore Chain?
 
 Copyright (C) 2017-2022 Thunder Token Ltd.
 
@@ -7,7 +7,7 @@ Copyright (C) 2017-2022 Thunder Token Ltd.
 ### Suggested Requirements
 * `4 cores of CPU` and `8 GB of memory (RAM)`.
 * `500 GB` of free disk space.
-* You need to open port `8545`, `8546`, `9201`.
+* You need to open port `9201`.
 
 ### Pre-install
 * Install Docker: https://docs.docker.com/engine/install/
@@ -15,27 +15,31 @@ Copyright (C) 2017-2022 Thunder Token Ltd.
 
 
 ## Prepare keys and configs
-### 1. Create a key
-Create keys for Voter.
+### 1. Prepare Stakin and Voter keys
+Create keys for Stakin and Voter.
 ```
 ./run.sh -t genkey
 ```
 Key files will be generated under `./keystore`
 
-### 2. Deposit TT
-Deposit TT to the `Stakein` address which is created from the previous step.
+### 2. Get Stakin Address
 ```
 cat stakein-keys.json | grep Addresses -A 2
 ```
 
-### 3. Provide Your Logging Id
-Provide a reward address in `configs-template/<CHAIN>/override.yaml` and field `loggingId`
+### 3. Deposit TT
 
-### 4. Provide Reward Address
-Provide a reward address in `configs-template/<CHAIN>/override.yaml` and field `bidder.rewardAddress`
+Deposit TT to the `Stakein` address which shows from the previous step with `0x`.
+
+
+### 4. Provide Your Logging ID
+Provide a name to identify your validator in `configs-template/<CHAIN>/override.yaml` and field `loggingId`
+
+### 5. Provide Reward Address
+Provide a address to get reward in `configs-template/<CHAIN>/override.yaml` and field `bidder.rewardAddress`
 
 ## Quick Start
-* This excution will setup a voter.
+* This excution will setup a validator.
   - **testnet**: `./run.sh -c testnet -t start`
   - **mainnet**: `./run.sh -c mainnet -t start`
 * This excution will download chain data. This may **take hours**.
@@ -45,8 +49,8 @@ Provide a reward address in `configs-template/<CHAIN>/override.yaml` and field `
 
 ## Quick Upgrade
 ```
-git fetch --tags; git checkout r4.0.1-beta
-./run.sh -t upgrade
+git fetch --tags; git checkout r4.0.3-rc
+./run.sh -t force-upgrade
 ```
 
 
@@ -59,14 +63,14 @@ git fetch --tags; git checkout r4.0.1-beta
 Testnet
 ```
 CHAIN=testnet
-IMAGE_VERSION=r4.0.1-beta
+IMAGE_VERSION=r4.0.3-rc
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-venus-us-east-1.s3.amazonaws.com/venus-latest
 ```
 
 Mainnet
 ```
 CHAIN=mainnet
-IMAGE_VERSION=r4.0.1-beta
+IMAGE_VERSION=r4.0.3-rc
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-zeus-us-east-1.s3.amazonaws.com/zeus-latest
 ```
 
@@ -79,13 +83,11 @@ source .env
 ### 2. Config Files
 * Download from Github
 ```
-wget https://github.com/thundercore/public-full/releases/download/${IMAGE_VERSION}/${CHAIN}-config-${IMAGE_VERSION}.tar.gz
+wget https://github.com/thundercore/public-full/releases/download/${IMAGE_VERSION}/${CHAIN}-validator-config-${IMAGE_VERSION}.tar.gz
 tar -zxvf ${CHAIN}-config-${IMAGE_VERSION}.tar.gz
 mv ${CHAIN} configs
 # cp -rp configs-template/${IMAGE_VERSION}/${CHAIN} configs # or you can copy from repo
 ```
-* Modify `loggingId` with an identifiable in `configs/override.yaml`.
-
 
 ### 3. Chain Data
 * Download the chain data snapshot and extract.
@@ -101,7 +103,7 @@ wget -c "${CHAINDATA_URL}" -O - | tar -C data -zx
 ```
 
 
-### Run a Voter
+### Run a Validator
 
 * Provide a `docker-compose.yml` file.
 
@@ -109,13 +111,11 @@ wget -c "${CHAINDATA_URL}" -O - | tar -C data -zx
 version: '3'
 
 services:
-  thunder-full:
-    container_name: thunder-full
+  thunder-validator:
+    container_name: thunder-validator
     image: thundercore/thunder:${IMAGE_VERSION}
-    hostname: thunder-full
+    hostname: thunder-validator
     ports:
-      - 8545:8545
-      - 8546:8546
       - 9201:9201
     env_file:
       - ./.env
@@ -125,7 +125,7 @@ services:
       - ./data:/datadir
       - ./configs:/config/fastpath/pala
       - ./logs:/logs
-      - ./keystone:/keystone
+      - ./keystore:/keystore
     entrypoint: [ "/tini", "--", "/entrypoint.sh" ]
     restart: always
 ```
@@ -134,15 +134,14 @@ docker-compose up -d
 ```
 
 
-## Check Voter Status
+## Check Validator Status
 
-1. Check Log
+1. Check Log for curren role
 ```
-tail -f ./logs/thunder.verbose.log
+tail -f ./logs/thunder.verbose.log | grep "I am"
 ```
-* The process number will increase rapidly.
 
-2. If you are a voter, you will receive log with Notarization,
+2. If you are a validator, you will receive log with Notarization,
 ```
 tail -f ./logs/thunder.verbose.log | grep onReceivedNotarization
 
