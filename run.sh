@@ -2,7 +2,7 @@
 set -e
 
 usage() {
-    echo -e "./$(basename "${0}") -c [mainnet/testnet] -t [start/upgrade/stop/down/clean-all]"
+    echo -e "./$(basename "${0}") -c [mainnet/testnet] -t [start/upgrade/stop/down/clean-all/genkey]"
     echo -e " -b: specific boot nodes, string, using comma as a separator"
     echo -e "       ex: \"boot-public.thundercore.com:8888,boot-public-2.thundercore.com:8888\""
     echo -e "       default: boot-public.thundercore.com:8888(mainnet)"
@@ -27,6 +27,7 @@ usage() {
     echo -e "Example:"
     echo -e "    Start mainnet node: ./$(basename "${0}") -c mainnet -t start"
     echo -e "    Stop testnet node: ./$(basename "${0}") -c testnet -t stop"
+    echo -e "    Generate keys: ./$(basename "${0}") -c testnet -t genkey"
 }
 
 setup_parameter() {
@@ -95,16 +96,16 @@ setup_env() {
     # Check loggingId in ovveride.yaml
     LOGGINGID_NEED_REPLACE=$(grep 'loggingId' $OVERRIDE_FILE)
     if [[ "$LOGGINGID_NEED_REPLACE" == *"YOUR_LOGGINGID"* ]]; then
-        echo "Please provide loggingId in configs-template/<CHAIN>/overide.yaml "
+        echo "Please provide loggingId in ${OVERRIDE_FILE}"
         exit 1
     fi
     # Check rewardAddress in ovveride.yaml
     REWARD_NEED_REPLACE=$(grep 'rewardAddress' $OVERRIDE_FILE)
     if [[ "$REWARD_NEED_REPLACE" == *"0xREWARD_ADDRESS_REPLACE_ME"* ]]; then
-        echo "Please provide bidder.rewardAddress(start with 0x) in configs-template/<CHAIN>/overide.yaml "
+        echo "Please provide bidder.rewardAddress(start with 0x) in ${OVERRIDE_FILE}"
         exit 1
     elif [[ "$REWARD_NEED_REPLACE" != *"0x"* ]]; then
-        echo "Please provide bidder.rewardAddress(start with 0x) in configs-template/<CHAIN>/overide.yaml "
+        echo "Please provide bidder.rewardAddress(start with 0x) in ${OVERRIDE_FILE}"
         exit 1
     fi
 

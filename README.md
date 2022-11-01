@@ -15,25 +15,28 @@ Copyright (C) 2017-2022 Thunder Token Ltd.
 
 
 ## Prepare keys and configs
-### 1. Prepare Stakin and Voter keys
+### 1. Provide Your Logging ID
+* Provide a name to identify your validator in `configs-template/<CHAIN>/override.yaml` and field `loggingId`
+
+### 2. Provide Reward Address
+* Provide a address to get reward in `configs-template/<CHAIN>/override.yaml` and field `bidder.rewardAddress`
+
+### 3. Provide Bid Amount
+* Provide a amount to bid as a validator in `configs-template/<CHAIN>/override.yaml` and field `bidder.amount`
+
+### 4. Prepare Stakin and Voter keys
 Create keys for Stakin and Voter.
 ```
-./run.sh -t genkey
+git checkout validator
+./run.sh -c [mainnet/testnet] -t genkey
 ```
+
 Key files will be generated under `./keystore`
 
 ### 2. Get Stakin Address
 ```
-cat stakein-keys.json | grep Addresses -A 2
+cat ./keystore/stakein-keys.json | grep Addresses -A 2
 ```
-### 3. Provide Your Logging ID
-* Provide a name to identify your validator in `configs-template/<CHAIN>/override.yaml` and field `loggingId`
-
-### 4. Provide Reward Address
-* Provide a address to get reward in `configs-template/<CHAIN>/override.yaml` and field `bidder.rewardAddress`
-
-### 5. Provide Bid Amount
-* Provide a amount to bid as a validator in `configs-template/<CHAIN>/override.yaml` and field `bidder.amount`
 
 ### 6. Deposit TT
 * Deposit TT to the `Stakein` address which shows from the `2. Get Stakin Address` with `0x`. 
