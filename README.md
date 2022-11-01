@@ -33,13 +33,13 @@ git checkout validator
 
 Key files will be generated under `./keystore`
 
-### 2. Get Stakin Address
+### 5. Get Stakin Address
 ```
 cat ./keystore/stakein-keys.json | grep Addresses -A 2
 ```
 
 ### 6. Deposit TT
-* Deposit TT to the `Stakein` address which shows from the `2. Get Stakin Address` with `0x`. 
+* Deposit TT to the `Stakein` address which shows from previous step with `0x`. 
 * Deposit balance shoud greater than `bidder.amount` for the gas fee.
 
 
