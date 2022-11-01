@@ -35,7 +35,7 @@ bidder:
   rpcUrl: ws://zeus-prod-full-us-east-1-0.prod.tt-eng.com:8546
   rewardAddress: <0xREWARD_ADDRESS_REPLACE_ME>
   bidaddress: 0x30d87bd4D1769437880c64A543bB649a693EB348 # direct bid
-  amount: 9.375e+24
+  amount: 9.375e+24 # 9,375,000 TT
   bidtxgasprice: 0
   gasbidprice: 1E+9
   bidtxpricemax: 1E+12

@@ -26,17 +26,19 @@ Key files will be generated under `./keystore`
 ```
 cat stakein-keys.json | grep Addresses -A 2
 ```
+### 3. Provide Your Logging ID
+* Provide a name to identify your validator in `configs-template/<CHAIN>/override.yaml` and field `loggingId`
 
-### 3. Deposit TT
+### 4. Provide Reward Address
+* Provide a address to get reward in `configs-template/<CHAIN>/override.yaml` and field `bidder.rewardAddress`
 
-Deposit TT to the `Stakein` address which shows from the previous step with `0x`.
+### 5. Provide Bid Amount
+* Provide a amount to bid as a validator in `configs-template/<CHAIN>/override.yaml` and field `bidder.amount`
 
+### 6. Deposit TT
+* Deposit TT to the `Stakein` address which shows from the `2. Get Stakin Address` with `0x`. 
+* Deposit balance shoud greater than `bidder.amount` for the gas fee.
 
-### 4. Provide Your Logging ID
-Provide a name to identify your validator in `configs-template/<CHAIN>/override.yaml` and field `loggingId`
-
-### 5. Provide Reward Address
-Provide a address to get reward in `configs-template/<CHAIN>/override.yaml` and field `bidder.rewardAddress`
 
 ## Quick Start
 * This excution will setup a validator.
