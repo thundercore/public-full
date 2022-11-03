@@ -40,6 +40,7 @@ rpc:
 chain:
   chainID: 18
   genesis: /config/fastpath/pala/genesis.json
+  initialSupply: 1E+29
   snapshotCache: 0
 accel:
   txpool:
