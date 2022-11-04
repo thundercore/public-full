@@ -10,7 +10,7 @@ key:
   StakeInKeyId: stakein0
   VotingKeyId: vote0
 pala:
-  fromGenesis:   false
+  fromGenesis: false
   bootnode:
     trusted:
       - boot-public.thundercore.com:8888
@@ -39,12 +39,12 @@ bidder:
   bidtxgasprice: 0
   gasbidprice: 1E+9
   bidtxpricemax: 1E+12
+metrics:
+  address: 0.0.0.0:9201
 eth:
   logFile: /logs/thunder.eth.log
   logFilter: "trie=4,state=4"
-  txLookupLimit: 0
-metrics:
-  address: 0.0.0.0:9201
+  txLookupLimit: 32400
 profiling:
   enable: true
   port: 9998

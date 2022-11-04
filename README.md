@@ -54,7 +54,7 @@ cat ./keystore/stakein-keys.json | grep Addresses -A 2
 
 ## Quick Upgrade
 ```
-git fetch --tags; git checkout r4.0.3-rc
+git fetch --tags; git checkout r4.0.4
 ./run.sh -t force-upgrade
 ```
 

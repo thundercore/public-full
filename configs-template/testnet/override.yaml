@@ -39,6 +39,8 @@ bidder:
   bidtxgasprice: 0
   gasbidprice: 1E+9
   bidtxpricemax: 1E+12
+metrics:
+  address: 0.0.0.0:9201
 eth:
   logFile: /logs/thunder.eth.log
   logFilter: "trie=4,state=4"

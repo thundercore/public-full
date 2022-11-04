@@ -35,6 +35,9 @@ auxnet:
 
 logFile: "/logs/thunder.log"
 verboseLogFile: "/logs/thunder.verbose.log"
+eth:
+  logFile: "/logs/thunder.eth.log"
+  logFilter: "*=4"
 
 resourceMonitor:
   enable: true
