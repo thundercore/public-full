@@ -114,10 +114,14 @@ setup_env() {
 load_chain_config(){
     local boots boot_list
     if [[ -d "${CHAIN_CONFIG_DIR}" ]] && [[ "${1}" != "force" ]]; then
-        :
+        echo_log "No need to reload Configs from configs-template"
+    elif [[ "${1}" == "force" ]]; then
+        rm -rf "${CHAIN_CONFIG_DIR}"
+        cp -rp "${DIR_PATH}/configs-template/${CHAIN}" "${CHAIN_CONFIG_DIR}"
+        echo_log "Force copy configs from configs-template"
     else
         cp -rp "${DIR_PATH}/configs-template/${CHAIN}" "${CHAIN_CONFIG_DIR}"
-        echo_log "Configs copy from configs-template"
+        echo_log "Copy configs from configs-template"
     fi
 
     boots=$(echo ${BOOT_NODE} | tr "," "\n")
@@ -208,13 +212,13 @@ main(){
         docker-compose restart
     elif [[ "${TASK}" == "upgrade" ]]; then
         echo_log "Upgrade chain"
-        get_code
+        # get_code
         load_chain_config notForce
         reload_image_version
         docker-compose up -d
     elif [[ "${TASK}" == "force-upgrade" ]]; then
         echo_log "Force upgrade chain"
-        get_code
+        # get_code
         load_chain_config force
         reload_image_version
         docker-compose up -d
