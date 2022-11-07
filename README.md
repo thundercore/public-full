@@ -26,8 +26,8 @@ cd public-full
 ## Quick Upgrade
 ```
 cd public-full
-git fetch --tags; git checkout R3.0.13
-./run.sh -t upgrade
+git fetch --tags; git checkout R4.0.4
+./run.sh -c mainnet -t force-upgrade
 ```
 
 

@@ -15,6 +15,7 @@
     voteCountingScheme: Seat
     rewardScheme: "thunderella"
     vaultGasUnlimited: false
+    rewardRatio: 50
   election:
     stopBlockSessionOffset: 10799
   pala:
@@ -23,6 +24,8 @@
     blockGasLimit: 1E+8
     maxCodeSize: 24576
     gasTable: ""
+    inflation: 0
+    baseFee: 0
   trustedRNG:
     rngActive: false
     version: "v1"
@@ -30,11 +33,15 @@
     burnReward: true
   consensus:
     infoInHeader: false
+    k: 1
   evm:
     version: ""
+  precompiled:
+    blockSnGetterActive: false
 
 - blocknum: 33000000
   desc: Pala hardfork
+  session: 1
   committee:
     electionScheme: TopKCandidates
     expectedCommSize: 4
@@ -75,3 +82,17 @@
 - session: 5350
   evm:
     version: "london"
+
+- session: 7750
+  precompiled:
+    blockSnGetterActive: true
+  consensus:
+    k: 1
+  protocol:
+    inflation: 15E+18
+    baseFee: 1E+10
+  committee:
+    proposerList: r4.0
+    expectedCommSize: 12
+    rewardRatio: 90
+    rewardScheme: "inflation"
