@@ -218,6 +218,7 @@ main(){
         docker-compose up -d
     elif [[ "${TASK}" == "force-upgrade" ]]; then
         echo_log "Force upgrade chain"
+        docker-compose down
         # get_code
         load_chain_config force
         reload_image_version
