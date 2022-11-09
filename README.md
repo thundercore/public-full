@@ -26,7 +26,7 @@ cd public-full
 ## Quick Upgrade
 ```
 cd public-full
-git fetch --tags; git checkout R4.0.4
+git fetch --tags; git checkout R4.0.5
 ./run.sh -c mainnet -t force-upgrade
 ```
 
@@ -42,14 +42,14 @@ git fetch --tags; git checkout R4.0.4
 ```
 # Testnet
 CHAIN=testnet
-IMAGE_VERSION=R4.0.4
+IMAGE_VERSION=r4.0.5
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-venus-us-east-1.s3.amazonaws.com/venus-latest
 ```
 
 .env for Mainnet
 ```# Mainnet
 CHAIN=mainnet
-IMAGE_VERSION=R4.0.4
+IMAGE_VERSION=r4.0.5
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-zeus-us-east-1.s3.amazonaws.com/zeus-latest
 ```
 
