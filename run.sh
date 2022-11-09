@@ -216,7 +216,7 @@ genkey(){
     if [[ ! -d "${KEYSTORE_DIR}" ]]; then
         mkdir "${KEYSTORE_DIR}"
     fi
-    docker run -it -d --entrypoint /bin/sh --name thunder-genkey thundercore/thunder
+    docker run -it -d --entrypoint /bin/sh --name thunder-genkey thundercore/thunder:r4.0.5
     docker exec thunder-genkey sh -c './thundertool --noencrypt genvotekeys --num-keys 1; ./thundertool --noencrypt genstakeinkeys --num-keys 1'
     docker exec thunder-genkey sh -c 'cat /keys.json' > "${KEYSTORE_DIR}"/keys.json
     docker exec thunder-genkey sh -c './thundertool --noencrypt getkeys --num-keys 1 --key-type vote --output voter-keys.json --fs-srcdir .; cat voter-keys.json' > "${KEYSTORE_DIR}"/voter-keys.json
