@@ -59,7 +59,7 @@ cat ./keystore/stakein-keys.json | grep Addresses -A 2
 
 ## Quick Upgrade
 ```
-git fetch --tags; git checkout r4.0.4
+git pull origin validator
 ./run.sh -t force-upgrade
 ```
 
@@ -73,14 +73,14 @@ git fetch --tags; git checkout r4.0.4
 Testnet
 ```
 CHAIN=testnet
-IMAGE_VERSION=r4.0.3-rc
+IMAGE_VERSION=r4.0.5
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-venus-us-east-1.s3.amazonaws.com/venus-latest
 ```
 
 Mainnet
 ```
 CHAIN=mainnet
-IMAGE_VERSION=r4.0.3-rc
+IMAGE_VERSION=r4.0.5
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-zeus-us-east-1.s3.amazonaws.com/zeus-latest
 ```
 
