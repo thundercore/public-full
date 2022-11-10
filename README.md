@@ -15,6 +15,11 @@ Copyright (C) 2017-2022 Thunder Token Ltd.
 
 
 ## Prepare keys and configs
+### 0. Get code from github
+```
+git clone https://github.com/thundercore/public-full.git
+git checkout validator
+```
 ### 1. Provide Your Logging ID
 * Provide a name to identify your validator in `configs-template/<CHAIN>/override.yaml` and field `loggingId`
 
