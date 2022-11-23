@@ -10,6 +10,7 @@ usage() {
     echo -e " -c: specific chain"
     echo -e "       mainnet: Thundercore mainnet"
     echo -e "       testnet: Thundercore testnet, default is testnet"
+    echo -e "       custom: provide your own chain config under <public-full/configs-template/custom>"
     echo -e " -t: specific task" 
     echo -e "       start: start node"
     echo -e "       load-config: load default configs"
@@ -25,9 +26,9 @@ usage() {
     echo -e " -v: specific version, default is master"
     echo -e " "
     echo -e "Example:"
+    echo -e "    Generate keys: ./$(basename "${0}") -c testnet -t genkey"
     echo -e "    Start mainnet node: ./$(basename "${0}") -c mainnet -t start"
     echo -e "    Stop testnet node: ./$(basename "${0}") -c testnet -t stop"
-    echo -e "    Generate keys: ./$(basename "${0}") -c testnet -t genkey"
 }
 
 setup_parameter() {
@@ -73,8 +74,11 @@ setup_parameter() {
 
     if [[ "${CHAIN_NAME}" == "mainnet" ]] ; then
         : "${BOOT_NODE="boot-public.thundercore.com:8888"}"
-    else
+    elif [[ "${CHAIN_NAME}" == "testnet" ]] ; then
         : "${BOOT_NODE="boot-public-testnet.thundercore.com:8888"}"
+    elif [[ "${CHAIN_NAME}" == "custom" ]] && [[ "${BOOT_NODE}" == "" ]]  ; then
+        echo "Please provide boot node with -b, or -h for help"
+        exit 0
     fi
     if [[ -z ${TASK} ]]; then
         usage
@@ -88,27 +92,6 @@ echo_log() {
 # Setup env
 ##setup_env chain_name
 setup_env() {
-    if [[ "${CHAIN_NAME}" == "mainnet" ]] ; then
-        OVERRIDE_FILE="configs-template/mainnet/override.yaml"
-    else
-        OVERRIDE_FILE="configs-template/testnet/override.yaml"
-    fi
-    # Check loggingId in ovveride.yaml
-    LOGGINGID_NEED_REPLACE=$(grep 'loggingId' $OVERRIDE_FILE)
-    if [[ "$LOGGINGID_NEED_REPLACE" == *"YOUR_LOGGINGID"* ]]; then
-        echo "Please provide loggingId in ${OVERRIDE_FILE}"
-        exit 1
-    fi
-    # Check rewardAddress in ovveride.yaml
-    REWARD_NEED_REPLACE=$(grep 'rewardAddress' $OVERRIDE_FILE)
-    if [[ "$REWARD_NEED_REPLACE" == *"0xREWARD_ADDRESS_REPLACE_ME"* ]]; then
-        echo "Please provide bidder.rewardAddress(start with 0x) in ${OVERRIDE_FILE}"
-        exit 1
-    elif [[ "$REWARD_NEED_REPLACE" != *"0x"* ]]; then
-        echo "Please provide bidder.rewardAddress(start with 0x) in ${OVERRIDE_FILE}"
-        exit 1
-    fi
-
     # Check and prepare .env file
     if [[ ! -f "${DIR_PATH}/.env" ]]; then
         cp "${DIR_PATH}/.env.example" "${DIR_PATH}/.env"
@@ -131,6 +114,35 @@ setup_env() {
     if [[ "${CHAIN}" != "${CHAIN_NAME}" ]]; then
         echo ".env file existed, and it's chain is ${CHAIN}. EXIT!"
         exit 1
+    fi
+}
+
+check_chain_config(){
+    OVERRIDE_FILE="${DIR_PATH}/configs/override.yaml"
+
+    # 1. Check loggingId
+    LOGGINGID_NEED_REPLACE=$(grep 'loggingId' $OVERRIDE_FILE)
+    if [[ "$LOGGINGID_NEED_REPLACE" == *"<YOUR_LOGGINGID>"* ]]; then
+        read -p "Please provide a name/id for your validator (e.g. testnet-public-validator-david): " LOGGINGID
+        sed -i "s#<YOUR_LOGGINGID>#${LOGGINGID}#g" $OVERRIDE_FILE
+    fi
+
+    # 2. Check bidder.rewardAddress
+    REWARD_NEED_REPLACE=$(grep 'rewardAddress' $OVERRIDE_FILE)
+    if [[ "$REWARD_NEED_REPLACE" == *"<0xREWARD_ADDRESS_REPLACE_ME>"* ]]; then
+        read -p "Please provide a address to get reward (e.g. 0x1234567890123456789012345678901234567890): " REWARD_ADDR
+        sed -i "s#<0xREWARD_ADDRESS_REPLACE_ME>#${REWARD_ADDR}#g" $OVERRIDE_FILE
+    fi
+
+    # 3. Check bidder.amount
+    BID_AMOUNT_NEED_REPLACE=$(grep 'amount' $OVERRIDE_FILE)
+    if [[ "$BID_AMOUNT_NEED_REPLACE" == *"<BID_AMOUNT_REPLACE_ME>"* ]]; then
+        echo "[Hint] bid amount: "
+        echo "  - amount >  0 : normal bid"
+        echo "  - amount =  0 : bid 0 TT, lose election and then you can get all refund to stakin0"
+        echo "  - amount = -1 : bid with default minBidAmount (1E+23 = 100,000 TT)"
+        read -p "Please provide a bid amount (e.g 2E+23): " BID_AMOUNT
+        sed -i "s#<BID_AMOUNT_REPLACE_ME>#${BID_AMOUNT}#g" $OVERRIDE_FILE
     fi
 }
 
@@ -159,6 +171,8 @@ load_chain_config(){
     fi
     yq ".pala.bootnode.trusted = ${boot_list}" < "${CHAIN_CONFIG_DIR}/override.yaml" > "${CHAIN_CONFIG_DIR}/override.yaml-tmp"
     mv "${CHAIN_CONFIG_DIR}/override.yaml-tmp" "${CHAIN_CONFIG_DIR}/override.yaml"
+
+    check_chain_config
 }
 
 # Check and prepare chain date file
@@ -167,13 +181,18 @@ load_chain_data(){
         mkdir "${CHAIN_DATA_DIR}"
     fi
     if [[ "${1}" == "force" ]] || [[ ! -f "${CHAIN_DATA_DIR}/thunder/chaindata/CURRENT" ]]; then
-        rm -rf "${CHAIN_DATA_DIR:?}/"* || true
-        wget -q -O "${CHAIN_DATA_DIR}"/latest "${RECOVER_CHAIN_DATA_URL}"
-        CHAINDATA_URL=$(cut -d , -f 1 "${CHAIN_DATA_DIR}"/latest)
-        # MD5_CHECKSUM=$(cut -d , -f 2 "${CHAIN_DATA_DIR}"/latest)
-        echo_log "Download and decompress chaindata from ${CHAIN_DATA_URL}"
-        echo_log "It may take hours."
-        wget -cq "${CHAINDATA_URL}" -O - | tar -C "${CHAIN_DATA_DIR}" -zx
+        read -p "Download chaindata may take hours, start now? [y/n]: " DL_CHAIN_DATA
+        if [[ "${DL_CHAIN_DATA}" == "y" ]] || [[ "${DL_CHAIN_DATA}" == "Y" ]]; then
+            rm -rf "${CHAIN_DATA_DIR:?}/"* || true
+            wget -q -O "${CHAIN_DATA_DIR}"/latest "${RECOVER_CHAIN_DATA_URL}"
+            CHAINDATA_URL=$(cut -d , -f 1 "${CHAIN_DATA_DIR}"/latest)
+            # MD5_CHECKSUM=$(cut -d , -f 2 "${CHAIN_DATA_DIR}"/latest)
+            echo_log "Download and decompress chaindata from ${CHAIN_DATA_URL}"
+            wget -cq "${CHAINDATA_URL}" -O - | tar -C "${CHAIN_DATA_DIR}" -zx
+        else
+            echo_log "Not ready to download chain data."
+            exit 0
+        fi
     fi
 }
 
@@ -233,6 +252,12 @@ main(){
 
     pushd "${DIR_PATH}" 1>/dev/null || return 1
 
+    if [[ "${TASK}" == "genkey" ]]; then
+        echo_log "Generate Stakin and Vote keys"
+        genkey
+        exit 0
+    fi
+
     setup_env
 
     if [[ "${TASK}" == "start" ]]; then
@@ -283,9 +308,6 @@ main(){
         rm -rf "${CHAIN_CONFIG_DIR}"
         rm -f "${DIR_PATH}/docker-compose.yml"
         rm -rf "${CHAIN_LOG_DIR}"
-    elif [[ "${TASK}" == "genkey" ]]; then
-        echo_log "Generate Stakin and Vote keys"
-        genkey
     else
         usage
         exit 1

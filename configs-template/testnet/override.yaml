@@ -32,10 +32,10 @@ accel:
     TimePerBlock: 1s
     TxPerBlockLimit: -1
 bidder:
-  rpcUrl: ws://venus-prod-full-us-east-1-0.prod.tt-eng.com:8546
+  rpcUrl: wss://testnet-ws.thundercore.com
   rewardAddress: <0xREWARD_ADDRESS_REPLACE_ME>
   bidaddress: 0x30d87bd4D1769437880c64A543bB649a693EB348 # direct bid
-  amount: 1.00001E+23 # 100,001 TT
+  amount: <BID_AMOUNT_REPLACE_ME>
   bidtxgasprice: 0
   gasbidprice: 1E+9
   bidtxpricemax: 1E+12
@@ -45,8 +45,6 @@ eth:
   logFile: /logs/thunder.eth.log
   logFilter: "trie=4,state=4"
   txLookupLimit: 0
-metrics:
-  address: 0.0.0.0:9201
 profiling:
   enable: false
   port: 9998
