@@ -52,9 +52,17 @@ Mainnet
 # Quick Upgrade (Draft)
 ```
 git pull origin validator
-./run.sh -t force-upgrade
 ```
+Upgrade image version to r4.0.10
+```
+# .env
+IMAGE_VERSION=r4.0.10
+```
+* source .env
 
+```
+./run.sh -c <CHAIN> -t upgrade
+```
 
 # Manual Start
 
@@ -65,14 +73,14 @@ Provide a `.env` file.
 - Testnet
 ```
 CHAIN=testnet
-IMAGE_VERSION=r4.0.9
+IMAGE_VERSION=r4.0.10
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-venus-us-east-1.s3.amazonaws.com/venus-latest
 ```
 
 - Mainnet
 ```
 CHAIN=mainnet
-IMAGE_VERSION=r4.0.9
+IMAGE_VERSION=r4.0.10
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-zeus-us-east-1.s3.amazonaws.com/zeus-latest
 ```
 
