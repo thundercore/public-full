@@ -78,7 +78,7 @@ setup_parameter() {
         : "${BOOT_NODE="boot-public-testnet.thundercore.com:8888"}"
     elif [[ "${CHAIN_NAME}" == "custom" ]] && [[ "${BOOT_NODE}" == "" ]]  ; then
         echo "Please provide boot node with -b, or -h for help"
-        exit 0
+        exit 1
     fi
     if [[ -z ${TASK} ]]; then
         usage
@@ -121,28 +121,25 @@ check_chain_config(){
     OVERRIDE_FILE="${DIR_PATH}/configs/override.yaml"
 
     # 1. Check loggingId
-    LOGGINGID_NEED_REPLACE=$(grep 'loggingId' $OVERRIDE_FILE)
-    if [[ "$LOGGINGID_NEED_REPLACE" == *"<YOUR_LOGGINGID>"* ]]; then
+    if grep '<YOUR_LOGGINGID>' "$OVERRIDE_FILE"; then
         read -p "Please provide a name/id for your validator (e.g. testnet-public-validator-david): " LOGGINGID
-        sed -i "s#<YOUR_LOGGINGID>#${LOGGINGID}#g" $OVERRIDE_FILE
+        sed -i "s#<YOUR_LOGGINGID>#${LOGGINGID}#g" "$OVERRIDE_FILE"
     fi
 
     # 2. Check bidder.rewardAddress
-    REWARD_NEED_REPLACE=$(grep 'rewardAddress' $OVERRIDE_FILE)
-    if [[ "$REWARD_NEED_REPLACE" == *"<0xREWARD_ADDRESS_REPLACE_ME>"* ]]; then
+    if grep '<0xREWARD_ADDRESS_REPLACE_ME>' "$OVERRIDE_FILE"; then
         read -p "Please provide a address to get reward (e.g. 0x1234567890123456789012345678901234567890): " REWARD_ADDR
-        sed -i "s#<0xREWARD_ADDRESS_REPLACE_ME>#${REWARD_ADDR}#g" $OVERRIDE_FILE
+        sed -i "s#<0xREWARD_ADDRESS_REPLACE_ME>#${REWARD_ADDR}#g" "$OVERRIDE_FILE"
     fi
 
     # 3. Check bidder.amount
-    BID_AMOUNT_NEED_REPLACE=$(grep 'amount' $OVERRIDE_FILE)
-    if [[ "$BID_AMOUNT_NEED_REPLACE" == *"<BID_AMOUNT_REPLACE_ME>"* ]]; then
+    if grep '<BID_AMOUNT_REPLACE_ME>' "$OVERRIDE_FILE"; then
         echo "[Hint] bid amount: "
         echo "  - amount >  0 : normal bid"
         echo "  - amount =  0 : bid 0 TT, lose election and then you can get all refund to stakin0"
         echo "  - amount = -1 : bid with default minBidAmount (1E+23 = 100,000 TT)"
         read -p "Please provide a bid amount (e.g 2E+23): " BID_AMOUNT
-        sed -i "s#<BID_AMOUNT_REPLACE_ME>#${BID_AMOUNT}#g" $OVERRIDE_FILE
+        sed -i "s#<BID_AMOUNT_REPLACE_ME>#${BID_AMOUNT}#g" "$OVERRIDE_FILE"
     fi
 }
 
@@ -235,7 +232,7 @@ genkey(){
     if [[ ! -d "${KEYSTORE_DIR}" ]]; then
         mkdir "${KEYSTORE_DIR}"
     fi
-    docker run -it -d --entrypoint /bin/sh --name thunder-genkey thundercore/thunder:r4.0.5
+    docker run -it -d --entrypoint /bin/sh --name thunder-genkey thundercore/thunder
     docker exec thunder-genkey sh -c './thundertool --noencrypt genvotekeys --num-keys 1; ./thundertool --noencrypt genstakeinkeys --num-keys 1'
     docker exec thunder-genkey sh -c 'cat /keys.json' > "${KEYSTORE_DIR}"/keys.json
     docker exec thunder-genkey sh -c './thundertool --noencrypt getkeys --num-keys 1 --key-type vote --output voter-keys.json --fs-srcdir .; cat voter-keys.json' > "${KEYSTORE_DIR}"/voter-keys.json
