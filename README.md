@@ -38,30 +38,26 @@ cat ./keystore/stakein-keys.json | grep Addresses -A 2
 
 
 # Quick Start
-Testnet
+
 ```
+# Testnet
 ./run.sh -c testnet -t start
-```
-Mainnet
-```
+
+# Mainnet
 ./run.sh -c mainnet -t start
 ```
 * This excution will download chain data. This may `take hours`.
 
 
 # Quick Upgrade (Draft)
-```
-git pull origin validator
-```
+
 Upgrade image version to r4.0.10
 ```
-# .env
-IMAGE_VERSION=r4.0.10
-```
-* source .env
-
-```
-./run.sh -c <CHAIN> -t upgrade
+git pull origin validator
+vim .env
+# IMAGE_VERSION=r4.0.10
+source .env
+./run.sh -c <mainnet|testnet> -t upgrade
 ```
 
 # Manual Start
@@ -160,6 +156,21 @@ tail -f ./logs/thunder.verbose.log | grep reward
 ```
 * Once you become a validator, you start to get reward in the the of the session. 
 
+# Quit Validator
+
+Set bid amount to `0`, and save file directly. It will apply to next session.
+
+```
+vim config/override.yaml
+# set amount: 0
+```
+
+# Withdraw TT
+Use private key to operater your stakin address.
+```
+cat keystore/stakin-key.json
+```
+
 
 # Roadmap
 
@@ -172,6 +183,8 @@ tail -f ./logs/thunder.verbose.log | grep reward
 
 | Feature |  Status |
 | ------- |  :------: |
-| Testnet | 🛠 |
-| Mainnet | 🛠 |
-| Auto update bid amount | 🛠 |
+| Testnet | ✅ |
+| Mainnet | ✅ |
+| Validator - whitelist | ✅ |
+| Auto update bid amount | ✅ |
+| Validator - public | 🔨 |
