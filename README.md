@@ -30,11 +30,11 @@ git checkout validator
 
 ### 3. Get Stakin Address and Deposit  TT for Bid
 ```
-cat ./keystore/stakein-keys.json | grep Addresses -A 2
+cat ./keystore/stakein-keys.json
 ```
-* Deposit TT to the `Stakein` address which shows from previous step with `0x`. 
+* You can operate this address by `PrivateKeys`.
+* Deposit TT to the `Addresses` with `0x` prefix.
 * Deposit amount shoud greater than `bid amount` for the gas fee.
-
 
 
 # Quick Start
