@@ -39,6 +39,7 @@ bidder:
   bidtxgasprice: 0
   gasbidprice: 1E+9
   bidtxpricemax: 1E+12
+  dynamicbidamount: true
 metrics:
   address: 0.0.0.0:9201
 eth:

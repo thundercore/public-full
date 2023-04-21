@@ -14,6 +14,7 @@
     rewardScheme: "thunderella"
     vaultGasUnlimited: false
     rewardRatio: 50
+    electVersion: ""
   protocol:
     blockGasLimit: 1E+8
     maxCodeSize: 24576
@@ -37,6 +38,8 @@
     version: ""
   precompiled:
     blockSnGetterActive: false
+    vaultVersion: ""
+    revertDelegateCall: false
 
 - blocknum: 1
   desc: "Pala hardfork"
@@ -82,3 +85,14 @@
     expectedCommSize: 12
     rewardRatio: 90
     rewardScheme: "inflation"
+
+- session: 9685
+  committee:
+    electVersion: "r3"
+  precompiled:
+    vaultVersion: "r3"
+    revertDelegateCall: true
+  trustedRNG:
+    version: "v4"
+  vault:
+    burnReward: false

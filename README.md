@@ -49,15 +49,13 @@ cat ./keystore/stakein-keys.json
 * This excution will download chain data. This may `take hours`.
 
 
-# Quick Upgrade (Draft)
+# Quick Upgrade
 
-Upgrade image version to r4.0.10
+Upgrade to latest version
 ```
 git pull origin validator
-vim .env
-# IMAGE_VERSION=r4.0.10
-source .env
 ./run.sh -c <mainnet|testnet> -t upgrade
+# Do you want to upgrade from <CURRENT_VERSION> to <NEW_VERSION>?(y/n): y
 ```
 
 # Manual Start
@@ -69,14 +67,14 @@ Provide a `.env` file.
 - Testnet
 ```
 CHAIN=testnet
-IMAGE_VERSION=r4.0.10
+IMAGE_VERSION=r4.1.3
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-venus-us-east-1.s3.amazonaws.com/venus-latest
 ```
 
 - Mainnet
 ```
 CHAIN=mainnet
-IMAGE_VERSION=r4.0.10
+IMAGE_VERSION=r4.1.3
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-zeus-us-east-1.s3.amazonaws.com/zeus-latest
 ```
 
@@ -158,7 +156,7 @@ tail -f ./logs/thunder.verbose.log | grep reward
 
 # Quit Validator
 
-Set bid amount to `0`, and save file directly. It will apply to next session.
+Set bid amount to `0`, and save file directly. It will apply to next session(3 Hours).
 
 ```
 vim config/override.yaml
