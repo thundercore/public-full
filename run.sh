@@ -15,7 +15,7 @@ usage() {
     echo -e "       start: start node"
     echo -e "       load-config: load default configs"
     echo -e "       force-reload-config: force reload default configs"
-    echo -e "       upgrade: upgrade node"
+    echo -e "       upgrade: upgrade node to the latest version"
     echo -e "       force-upgrade: force upgrade node"
     echo -e "       stop: stop container"
     echo -e "       down: terminate container"
@@ -51,7 +51,7 @@ setup_parameter() {
                 exit 0
                 ;;
             ?)
-                echo "unkonw argument"
+                echo "unknow argument"
                 usage
                 exit 1
                 ;;
@@ -82,6 +82,7 @@ setup_parameter() {
     fi
     if [[ -z ${TASK} ]]; then
         usage
+        exit 1
     fi
 }
 
@@ -96,7 +97,6 @@ setup_env() {
     if [[ ! -f "${DIR_PATH}/.env" ]]; then
         cp "${DIR_PATH}/.env.example" "${DIR_PATH}/.env"
         echo_log ".env copy from .env.example"
-        set -x
         if [[ "${CHAIN_NAME}" == "mainnet" ]]; then
             source "${DIR_PATH}/.env.example"
             sed -i "s#^CHAIN=.*#CHAIN=${MAINNET_CHAIN}#g" "${DIR_PATH}/.env"
@@ -146,12 +146,33 @@ check_chain_config(){
 # Check and prepare chain config file
 load_chain_config(){
     local boots boot_list
-    if [[ -d "${CHAIN_CONFIG_DIR}" ]] && [[ "${1}" != "force" ]]; then
-        echo_log "No need to reload Configs from configs-template"
-    elif [[ "${1}" == "force" ]]; then
-        rm -rf "${CHAIN_CONFIG_DIR}"
-        cp -rp "${DIR_PATH}/configs-template/${CHAIN}" "${CHAIN_CONFIG_DIR}"
-        echo_log "Force copy configs from configs-template"
+    if [[ -d "${CHAIN_CONFIG_DIR}" ]]; then
+        ORI_IMAGE_VERSION=$(grep "^IMAGE_VERSION" "${DIR_PATH}/.env" | cut -d "=" -f 2 | xargs)
+        NEW_IMAGE_VERSION=$(grep "^IMAGE_VERSION" "${DIR_PATH}/.env.example" | cut -d "=" -f 2 | xargs)
+
+        read -p "Do you want to upgrade from ${ORI_IMAGE_VERSION} to ${NEW_IMAGE_VERSION}?(y/n): " FORCERELOAD
+
+        if [[ "${FORCERELOAD}" == "y" ]]; then
+
+            ORI_OVERRIDE_FILE="${DIR_PATH}/override-backup.yaml"
+            OVERRIDE_FILE="${CHAIN_CONFIG_DIR}/override.yaml"
+
+            cp -rp "${OVERRIDE_FILE}" "${ORI_OVERRIDE_FILE}"
+            rm -rf "${CHAIN_CONFIG_DIR}"
+            cp -rp "${DIR_PATH}/configs-template/${CHAIN}" "${CHAIN_CONFIG_DIR}"
+
+            LOGGINGID=$(grep loggingId ${ORI_OVERRIDE_FILE} | cut -d ":" -f 2 | cut -d "#" -f 1 | xargs)
+            REWARD_ADDR=$(grep rewardAddress ${ORI_OVERRIDE_FILE} | cut -d ":" -f 2 | xargs)
+            BID_AMOUNT=$(grep "^  amount" ${ORI_OVERRIDE_FILE} | cut -d ":" -f 2 | xargs)
+
+            sed -i "s#<YOUR_LOGGINGID>#${LOGGINGID}#g" "$OVERRIDE_FILE"
+            sed -i "s#<0xREWARD_ADDRESS_REPLACE_ME>#${REWARD_ADDR}#g" "$OVERRIDE_FILE"
+            sed -i "s#<BID_AMOUNT_REPLACE_ME>#${BID_AMOUNT}#g" "$OVERRIDE_FILE"
+
+            echo_log "Force copy configs from configs-template"
+        else
+            exit 0
+        fi
     else
         cp -rp "${DIR_PATH}/configs-template/${CHAIN}" "${CHAIN_CONFIG_DIR}"
         echo_log "Copy configs from configs-template"
@@ -195,9 +216,12 @@ load_chain_data(){
 
 # Reload image version
 reload_image_version(){
+    ORI_IMAGE_VERSION=${IMAGE_VERSION}
     source "${DIR_PATH}/.env.example"
     sed -i "s#^IMAGE_VERSION=.*#IMAGE_VERSION=${IMAGE_VERSION}#g" "${DIR_PATH}/.env"
     source "${DIR_PATH}/.env"
+    NEW_IMAGE_VERSION=${IMAGE_VERSION}
+    echo_log "Reload image version from ${ORI_IMAGE_VERSION} to ${NEW_IMAGE_VERSION}"
 }
 
 # Check and prepare docker-compose file
@@ -210,21 +234,8 @@ load_docker_compose(){
 
 # Git pull new code
 get_code() {
-    echo_log "Get code. Version: ${VERSION}"
-    if [[ $(git ls-remote --tags origin "refs/tags/${VERSION}") != "" ]]; then
-        git fetch origin --tag "${VERSION}:refs/tags/${VERSION}"
-        git checkout "${VERSION}"
-    else
-        if [[ $(git rev-parse --abbrev-ref HEAD) == "${VERSION}" ]]; then
-            git pull origin "${VERSION}"
-        elif git fetch origin "${VERSION}:${VERSION}"; then
-            if git checkout "${VERSION}"; then
-                git pull origin "${VERSION}"
-            fi
-        else
-            git checkout "${VERSION}"
-        fi
-    fi
+    echo_log "Get code to the latest"
+    git pull origin validator
 }
 
 # Generate stakin and vote keys
@@ -259,29 +270,19 @@ main(){
 
     if [[ "${TASK}" == "start" ]]; then
         echo_log "Start chain"
-        load_chain_config notForce
+        load_chain_config
         load_chain_data notForce
         load_docker_compose
         mkdir -p "${CHAIN_LOG_DIR}"
         docker-compose up -d
     elif [[ "${TASK}" == "load-config" ]]; then
         echo_log "Load configs"
-        load_chain_config notForce
-        docker-compose restart
-    elif [[ "${TASK}" == "force-reload-config" ]]; then
-        echo_log "Force reload configs"
-        load_chain_config force
+        load_chain_config
         docker-compose restart
     elif [[ "${TASK}" == "upgrade" ]]; then
-        echo_log "Upgrade chain"
-        # get_code
-        load_chain_config notForce
-        reload_image_version
-        docker-compose up -d
-    elif [[ "${TASK}" == "force-upgrade" ]]; then
-        echo_log "Force upgrade chain"
-        # get_code
-        load_chain_config force
+        echo_log "Upgrade chain config"
+        get_code
+        load_chain_config
         reload_image_version
         docker-compose up -d
     elif [[ "${TASK}" == "stop" ]]; then
