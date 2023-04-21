@@ -212,7 +212,7 @@ load_docker_compose(){
 # Git pull new code
 get_code() {
     echo_log "Get code to the latest"
-    git pull origin validator
+    git pull origin master
 }
 
 main(){
