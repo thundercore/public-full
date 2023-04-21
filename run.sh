@@ -161,7 +161,7 @@ load_chain_config(){
             rm -rf "${CHAIN_CONFIG_DIR}"
             cp -rp "${DIR_PATH}/configs-template/${CHAIN}" "${CHAIN_CONFIG_DIR}"
 
-            LOGGINGID=$(grep loggingId ${ORI_OVERRIDE_FILE} | cut -d " " -f 2 | xargs)
+            LOGGINGID=$(grep loggingId ${ORI_OVERRIDE_FILE} | cut -d ":" -f 2 | cut -d "#" -f 1 | xargs)
             REWARD_ADDR=$(grep rewardAddress ${ORI_OVERRIDE_FILE} | cut -d ":" -f 2 | xargs)
             BID_AMOUNT=$(grep "^  amount" ${ORI_OVERRIDE_FILE} | cut -d ":" -f 2 | xargs)
 
