@@ -131,7 +131,7 @@ services:
       - ./configs:/config/fastpath/pala
       - ./logs:/logs
       - ./keystore:/keystore
-    entrypoint: [ "/tini", "--", "/entrypoint.sh" ]
+    entrypoint: [ "/sbin/tini", "--", "/entrypoint.sh" ]
     restart: always
 ```
 ```
