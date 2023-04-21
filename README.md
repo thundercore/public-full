@@ -2,91 +2,87 @@
 
 Copyright (C) 2017-2022 Thunder Token Ltd.
 
-## Before Starting
-### Prerequisite
-* Install Docker: https://docs.docker.com/engine/install/
-* Install Docker-compose: https://docs.docker.com/compose/install/
+# Before Starting
 
-### Suggested Requirements
+## Suggested Requirements
 * `4 cores of CPU` and `8 GB of memory (RAM)`.
 * `500 GB` of free disk space.
 * You need to open port `8545`, `8546`, `9201`.
 
-## Quick Installation
-* This excution will setup a fullnode.
-  - **testnet**: `./run.sh -c testnet -t start`
-  - **mainnet**: `./run.sh -c mainnet -t start`
-* This excution will download chain data. This may **take hours**.
+## Pre-install
+* Install Docker: https://docs.docker.com/engine/install/
+* Install Docker-compose: https://docs.docker.com/compose/install/
+
+# Quick Start
 ```
 git clone https://github.com/thundercore/public-full.git
 cd public-full
+
+# Testnet
+./run.sh -c testnet -t start
+
+# Mainnet
 ./run.sh -c mainnet -t start
 ```
+* This excution will download chain data. This may `take hours`.
 
-## Quick Upgrade
+
+# Quick Upgrade
+
+Upgrade to latest version
 ```
-cd public-full
-git fetch --tags; git checkout R4.0.5
-./run.sh -c mainnet -t force-upgrade
+git pull
+./run.sh -c <mainnet|testnet> -t upgrade
+# Do you want to upgrade from <CURRENT_VERSION> to <NEW_VERSION>?(y/n): y
 ```
 
-
-## Manual Installation
-### Preparation
+# Manual Start
 
 ### 1. Environment Variables:
 
-* Provide a `.env` file.
+Provide a `.env` file.
 
-.env for Testnet
+- Testnet
 ```
-# Testnet
 CHAIN=testnet
-IMAGE_VERSION=r4.0.5
+IMAGE_VERSION=r4.1.3
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-venus-us-east-1.s3.amazonaws.com/venus-latest
 ```
 
-.env for Mainnet
-```# Mainnet
+- Mainnet
+```
 CHAIN=mainnet
-IMAGE_VERSION=r4.0.5
+IMAGE_VERSION=r4.1.3
 RECOVER_CHAIN_DATA_URL=https://chaindata-backup-prod-zeus-us-east-1.s3.amazonaws.com/zeus-latest
 ```
 
-* Source `.env` file.
-* If you need **full archive** chain data, Please contact us.
+Apply .env
 ```
 source .env
 ```
+* If you need `full archive` chain data, Please contact us.
+
 
 ### 2. Config Files
-* Download from Github
+Copy from repo
 ```
-wget https://github.com/thundercore/public-full/releases/download/${IMAGE_VERSION}/${CHAIN}-config-${IMAGE_VERSION}.tar.gz
-tar -zxvf ${CHAIN}-config-${IMAGE_VERSION}.tar.gz
-mv ${CHAIN} configs
-# cp -rp configs-template/${IMAGE_VERSION}/${CHAIN} configs # or you can copy from repo
+git clone https://github.com/thundercore/public-full.git
+cp -rp public-full/configs-template/${CHAIN}/ configs
 ```
-* Modify `loggingId` with an identifiable in `configs/override.yaml`.
-
 
 ### 3. Chain Data
-* Download the chain data snapshot and extract.
+Download Chain Data
 ```
 mkdir data
 wget -q -O data/latest "${RECOVER_CHAIN_DATA_URL}"
-
 CHAINDATA_URL=$(cut -d , -f 1 data/latest)
-# MD5_CHECKSUM=$(cut -d , -f 2 data/latest)
-
-# This step may take hours.
 wget -c "${CHAINDATA_URL}" -O - | tar -C data -zx
 ```
+* This step may take hours.
 
+### 4. Run a Fullnode
 
-### Run a Fullnode
-
-* Provide a `docker-compose.yml` file.
+Provide a `docker-compose.yml` file.
 
 ```
 version: '3'

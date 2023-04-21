@@ -10,11 +10,12 @@ usage() {
     echo -e " -c: specific chain"
     echo -e "       mainnet: Thundercore mainnet"
     echo -e "       testnet: Thundercore testnet, default is testnet"
+    echo -e "       custom: provide your own chain config under <public-full/configs-template/custom>"
     echo -e " -t: specific task" 
     echo -e "       start: start node"
     echo -e "       load-config: load default configs"
     echo -e "       force-reload-config: force reload default configs"
-    echo -e "       upgrade: upgrade node"
+    echo -e "       upgrade: upgrade node to the latest version"
     echo -e "       force-upgrade: force upgrade node"
     echo -e "       stop: stop container"
     echo -e "       down: terminate container"
@@ -48,7 +49,7 @@ setup_parameter() {
                 exit 0
                 ;;
             ?)
-                echo "unkonw argument"
+                echo "unknow argument"
                 usage
                 exit 1
                 ;;
@@ -70,11 +71,15 @@ setup_parameter() {
 
     if [[ "${CHAIN_NAME}" == "mainnet" ]] ; then
         : "${BOOT_NODE="boot-public.thundercore.com:8888"}"
-    else
+    elif [[ "${CHAIN_NAME}" == "testnet" ]] ; then
         : "${BOOT_NODE="boot-public-testnet.thundercore.com:8888"}"
+    elif [[ "${CHAIN_NAME}" == "custom" ]] && [[ "${BOOT_NODE}" == "" ]]  ; then
+        echo "Please provide boot node with -b, or -h for help"
+        exit 1
     fi
     if [[ -z ${TASK} ]]; then
         usage
+        exit 1
     fi
 }
 
@@ -89,7 +94,6 @@ setup_env() {
     if [[ ! -f "${DIR_PATH}/.env" ]]; then
         cp "${DIR_PATH}/.env.example" "${DIR_PATH}/.env"
         echo_log ".env copy from .env.example"
-        set -x
         if [[ "${CHAIN_NAME}" == "mainnet" ]]; then
             source "${DIR_PATH}/.env.example"
             sed -i "s#^CHAIN=.*#CHAIN=${MAINNET_CHAIN}#g" "${DIR_PATH}/.env"
@@ -110,15 +114,42 @@ setup_env() {
     fi
 }
 
+check_chain_config(){
+    OVERRIDE_FILE="${DIR_PATH}/configs/override.yaml"
+
+    # Check loggingId
+    if grep '<YOUR_LOGGINGID>' "$OVERRIDE_FILE"; then
+        read -p "Please provide a name/id for your validator (e.g. testnet-public-validator-david): " LOGGINGID
+        sed -i "s#<YOUR_LOGGINGID>#${LOGGINGID}#g" "$OVERRIDE_FILE"
+    fi
+}
+
 # Check and prepare chain config file
 load_chain_config(){
     local boots boot_list
-    if [[ -d "${CHAIN_CONFIG_DIR}" ]] && [[ "${1}" != "force" ]]; then
-        echo_log "No need to reload Configs from configs-template"
-    elif [[ "${1}" == "force" ]]; then
-        rm -rf "${CHAIN_CONFIG_DIR}"
-        cp -rp "${DIR_PATH}/configs-template/${CHAIN}" "${CHAIN_CONFIG_DIR}"
-        echo_log "Force copy configs from configs-template"
+    if [[ -d "${CHAIN_CONFIG_DIR}" ]]; then
+        ORI_IMAGE_VERSION=$(grep "^IMAGE_VERSION" "${DIR_PATH}/.env" | cut -d "=" -f 2 | xargs)
+        NEW_IMAGE_VERSION=$(grep "^IMAGE_VERSION" "${DIR_PATH}/.env.example" | cut -d "=" -f 2 | xargs)
+
+        read -p "Do you want to upgrade from ${ORI_IMAGE_VERSION} to ${NEW_IMAGE_VERSION}?(y/n): " FORCERELOAD
+
+        if [[ "${FORCERELOAD}" == "y" ]]; then
+
+            ORI_OVERRIDE_FILE="${DIR_PATH}/override-backup.yaml"
+            OVERRIDE_FILE="${CHAIN_CONFIG_DIR}/override.yaml"
+
+            cp -rp "${OVERRIDE_FILE}" "${ORI_OVERRIDE_FILE}"
+            rm -rf "${CHAIN_CONFIG_DIR}"
+            cp -rp "${DIR_PATH}/configs-template/${CHAIN}" "${CHAIN_CONFIG_DIR}"
+
+            LOGGINGID=$(grep loggingId ${ORI_OVERRIDE_FILE} | cut -d " " -f 2 | xargs)
+
+            sed -i "s#<YOUR_LOGGINGID>#${LOGGINGID}#g" "$OVERRIDE_FILE"
+
+            echo_log "Force copy configs from configs-template"
+        else
+            exit 0
+        fi
     else
         cp -rp "${DIR_PATH}/configs-template/${CHAIN}" "${CHAIN_CONFIG_DIR}"
         echo_log "Copy configs from configs-template"
@@ -135,6 +166,8 @@ load_chain_config(){
     fi
     yq ".pala.bootnode.trusted = ${boot_list}" < "${CHAIN_CONFIG_DIR}/override.yaml" > "${CHAIN_CONFIG_DIR}/override.yaml-tmp"
     mv "${CHAIN_CONFIG_DIR}/override.yaml-tmp" "${CHAIN_CONFIG_DIR}/override.yaml"
+
+    check_chain_config
 }
 
 # Check and prepare chain date file
@@ -143,21 +176,29 @@ load_chain_data(){
         mkdir "${CHAIN_DATA_DIR}"
     fi
     if [[ "${1}" == "force" ]] || [[ ! -f "${CHAIN_DATA_DIR}/thunder/chaindata/CURRENT" ]]; then
-        rm -rf "${CHAIN_DATA_DIR:?}/"* || true
-        wget -q -O "${CHAIN_DATA_DIR}"/latest "${RECOVER_CHAIN_DATA_URL}"
-        CHAINDATA_URL=$(cut -d , -f 1 "${CHAIN_DATA_DIR}"/latest)
-        # MD5_CHECKSUM=$(cut -d , -f 2 "${CHAIN_DATA_DIR}"/latest)
-        echo_log "Download and decompress chaindata from ${CHAIN_DATA_URL}"
-        echo_log "It may take hours."
-        wget -cq "${CHAINDATA_URL}" -O - | tar -C "${CHAIN_DATA_DIR}" -zx
+        read -p "Download chaindata may take hours, start now? [y/n]: " DL_CHAIN_DATA
+        if [[ "${DL_CHAIN_DATA}" == "y" ]] || [[ "${DL_CHAIN_DATA}" == "Y" ]]; then
+            rm -rf "${CHAIN_DATA_DIR:?}/"* || true
+            wget -q -O "${CHAIN_DATA_DIR}"/latest "${RECOVER_CHAIN_DATA_URL}"
+            CHAINDATA_URL=$(cut -d , -f 1 "${CHAIN_DATA_DIR}"/latest)
+            # MD5_CHECKSUM=$(cut -d , -f 2 "${CHAIN_DATA_DIR}"/latest)
+            echo_log "Download and decompress chaindata from ${CHAIN_DATA_URL}"
+            wget -cq "${CHAINDATA_URL}" -O - | tar -C "${CHAIN_DATA_DIR}" -zx
+        else
+            echo_log "Not ready to download chain data."
+            exit 0
+        fi
     fi
 }
 
 # Reload image version
 reload_image_version(){
+    ORI_IMAGE_VERSION=${IMAGE_VERSION}
     source "${DIR_PATH}/.env.example"
     sed -i "s#^IMAGE_VERSION=.*#IMAGE_VERSION=${IMAGE_VERSION}#g" "${DIR_PATH}/.env"
     source "${DIR_PATH}/.env"
+    NEW_IMAGE_VERSION=${IMAGE_VERSION}
+    echo_log "Reload image version from ${ORI_IMAGE_VERSION} to ${NEW_IMAGE_VERSION}"
 }
 
 # Check and prepare docker-compose file
@@ -170,21 +211,8 @@ load_docker_compose(){
 
 # Git pull new code
 get_code() {
-    echo_log "Get code. Version: ${VERSION}"
-    if [[ $(git ls-remote --tags origin "refs/tags/${VERSION}") != "" ]]; then
-        git fetch origin --tag "${VERSION}:refs/tags/${VERSION}"
-        git checkout "${VERSION}"
-    else
-        if [[ $(git rev-parse --abbrev-ref HEAD) == "${VERSION}" ]]; then
-            git pull origin "${VERSION}"
-        elif git fetch origin "${VERSION}:${VERSION}"; then
-            if git checkout "${VERSION}"; then
-                git pull origin "${VERSION}"
-            fi
-        else
-            git checkout "${VERSION}"
-        fi
-    fi
+    echo_log "Get code to the latest"
+    git pull origin validator
 }
 
 main(){
@@ -197,30 +225,19 @@ main(){
 
     if [[ "${TASK}" == "start" ]]; then
         echo_log "Start chain"
-        load_chain_config notForce
+        load_chain_config
         load_chain_data notForce
         load_docker_compose
         mkdir -p "${CHAIN_LOG_DIR}"
         docker-compose up -d
     elif [[ "${TASK}" == "load-config" ]]; then
         echo_log "Load configs"
-        load_chain_config notForce
-        docker-compose restart
-    elif [[ "${TASK}" == "force-reload-config" ]]; then
-        echo_log "Force reload configs"
-        load_chain_config force
+        load_chain_config
         docker-compose restart
     elif [[ "${TASK}" == "upgrade" ]]; then
-        echo_log "Upgrade chain"
-        # get_code
-        load_chain_config notForce
-        reload_image_version
-        docker-compose up -d
-    elif [[ "${TASK}" == "force-upgrade" ]]; then
-        echo_log "Force upgrade chain"
-        docker-compose down
-        # get_code
-        load_chain_config force
+        echo_log "Upgrade chain config"
+        get_code
+        load_chain_config
         reload_image_version
         docker-compose up -d
     elif [[ "${TASK}" == "stop" ]]; then

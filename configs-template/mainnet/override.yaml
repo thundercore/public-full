@@ -1,4 +1,4 @@
-loggingId: public-full-node
+loggingId: <YOUR_LOGGINGID>
 # debug | info | note | warning | error
 logLevel: 
   /: warn

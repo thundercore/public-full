@@ -16,6 +16,7 @@
     rewardScheme: "thunderella"
     vaultGasUnlimited: false
     rewardRatio: 50
+    electVersion: ""
   election:
     stopBlockSessionOffset: 10799
   pala:
@@ -38,6 +39,8 @@
     version: ""
   precompiled:
     blockSnGetterActive: false
+    vaultVersion: ""
+    revertDelegateCall: false
 
 - blocknum: 33000000
   desc: Pala hardfork
@@ -96,3 +99,14 @@
     expectedCommSize: 12
     rewardRatio: 90
     rewardScheme: "inflation"
+
+- session: 9098
+  committee:
+    electVersion: "r3"
+  precompiled:
+    vaultVersion: "r3"
+    revertDelegateCall: true
+  trustedRNG:
+    version: "v4"
+  vault:
+    burnReward: false
