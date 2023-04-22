@@ -104,7 +104,7 @@ services:
       - ./data:/datadir
       - ./configs:/config/fastpath/pala
       - ./logs:/logs
-    entrypoint: [ "/tini", "--", "/entrypoint.sh" ]
+    entrypoint: [ "/sbin/tini", "--", "/entrypoint.sh" ]
     restart: always
 ```
 ```
