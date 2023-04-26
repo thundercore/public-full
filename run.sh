@@ -230,6 +230,9 @@ load_docker_compose(){
         cp "${DIR_PATH}/docker-compose.yml.example" "${DOCKER_COMPOSE_FILE}"
         echo_log "docker-compose.yml copy from docker-compose.yml.example"
     fi
+    if [[ -z $(grep "/sbin/tini" "${DOCKER_COMPOSE_FILE}") ]]; then
+        sed -i "s#"/tini"#"/sbin/tini"#g" "${DOCKER_COMPOSE_FILE}"
+    fi
 }
 
 # Git pull new code
@@ -284,6 +287,7 @@ main(){
         get_code
         load_chain_config
         reload_image_version
+        load_docker_compose
         docker-compose up -d
     elif [[ "${TASK}" == "stop" ]]; then
         echo_log "Stop container"
