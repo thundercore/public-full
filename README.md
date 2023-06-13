@@ -1,6 +1,6 @@
 # How to Run a Fullnode on ThunderCore Chain?
 
-Copyright (C) 2017-2022 Thunder Token Ltd.
+Copyright (C) 2017-2023 Thunder Token Ltd.
 
 # Before Starting
 
