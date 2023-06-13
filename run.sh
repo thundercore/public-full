@@ -128,27 +128,30 @@ check_chain_config(){
 load_chain_config(){
     local boots boot_list
     if [[ -d "${CHAIN_CONFIG_DIR}" ]]; then
-        ORI_IMAGE_VERSION=$(grep "^IMAGE_VERSION" "${DIR_PATH}/.env" | cut -d "=" -f 2 | xargs)
-        NEW_IMAGE_VERSION=$(grep "^IMAGE_VERSION" "${DIR_PATH}/.env.example" | cut -d "=" -f 2 | xargs)
+        if [[ "${1}" != "notForce" ]]; then
+            ORI_IMAGE_VERSION=$(grep "^IMAGE_VERSION" "${DIR_PATH}/.env" | cut -d "=" -f 2 | xargs)
+            NEW_IMAGE_VERSION=$(grep "^IMAGE_VERSION" "${DIR_PATH}/.env.example" | cut -d "=" -f 2 | xargs)
 
-        read -p "Do you want to upgrade from ${ORI_IMAGE_VERSION} to ${NEW_IMAGE_VERSION}?(y/n): " FORCERELOAD
+            read -p "Do you want to upgrade from ${ORI_IMAGE_VERSION} to ${NEW_IMAGE_VERSION}?(y/n): " FORCERELOAD
 
-        if [[ "${FORCERELOAD}" == "y" ]]; then
+            if [[ "${FORCERELOAD}" == "y" ]]; then
 
-            ORI_OVERRIDE_FILE="${DIR_PATH}/override-backup.yaml"
-            OVERRIDE_FILE="${CHAIN_CONFIG_DIR}/override.yaml"
+                ORI_OVERRIDE_FILE="${DIR_PATH}/override-backup.yaml"
+                OVERRIDE_FILE="${CHAIN_CONFIG_DIR}/override.yaml"
 
-            cp -rp "${OVERRIDE_FILE}" "${ORI_OVERRIDE_FILE}"
-            rm -rf "${CHAIN_CONFIG_DIR}"
-            cp -rp "${DIR_PATH}/configs-template/${CHAIN}" "${CHAIN_CONFIG_DIR}"
+                cp -rp "${OVERRIDE_FILE}" "${ORI_OVERRIDE_FILE}"
+                rm -rf "${CHAIN_CONFIG_DIR}"
+                cp -rp "${DIR_PATH}/configs-template/${CHAIN}" "${CHAIN_CONFIG_DIR}"
 
-            LOGGINGID=$(grep loggingId ${ORI_OVERRIDE_FILE} | cut -d " " -f 2 | xargs)
+                LOGGINGID=$(grep loggingId ${ORI_OVERRIDE_FILE} | cut -d " " -f 2 | xargs)
 
-            sed -i "s#<YOUR_LOGGINGID>#${LOGGINGID}#g" "$OVERRIDE_FILE"
+                sed -i "s#<YOUR_LOGGINGID>#${LOGGINGID}#g" "$OVERRIDE_FILE"
 
-            echo_log "Force copy configs from configs-template"
-        else
-            exit 0
+                echo_log "Force copy configs from configs-template"
+            else
+                exit 0
+            fi
+
         fi
     else
         cp -rp "${DIR_PATH}/configs-template/${CHAIN}" "${CHAIN_CONFIG_DIR}"
@@ -228,7 +231,7 @@ main(){
 
     if [[ "${TASK}" == "start" ]]; then
         echo_log "Start chain"
-        load_chain_config
+        load_chain_config notForce
         load_chain_data notForce
         load_docker_compose
         mkdir -p "${CHAIN_LOG_DIR}"
@@ -239,8 +242,7 @@ main(){
         docker-compose restart
     elif [[ "${TASK}" == "upgrade" ]]; then
         echo_log "Upgrade chain config"
-        get_code
-        load_chain_config
+        load_chain_config force
         reload_image_version
         load_docker_compose
         docker-compose up -d
