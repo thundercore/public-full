@@ -17,6 +17,7 @@
     vaultGasUnlimited: false
     rewardRatio: 50
     electVersion: ""
+    clearingGasPriceScheme: "CandidatesMax"
   election:
     stopBlockSessionOffset: 10799
   pala:
@@ -110,3 +111,10 @@
     version: "v4"
   vault:
     burnReward: false
+
+- session: 10080
+  committee:
+    clearingGasPriceScheme: "Top1CandidatesDecision"
+    baseFee: 1E+11 #100gwei
+  trustedRNG:
+    version: "v5"

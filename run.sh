@@ -205,7 +205,7 @@ load_chain_data(){
             wget -q -O "${CHAIN_DATA_DIR}"/latest "${RECOVER_CHAIN_DATA_URL}"
             CHAINDATA_URL=$(cut -d , -f 1 "${CHAIN_DATA_DIR}"/latest)
             # MD5_CHECKSUM=$(cut -d , -f 2 "${CHAIN_DATA_DIR}"/latest)
-            echo_log "Download and decompress chaindata from ${CHAIN_DATA_URL}"
+            echo_log "Download and decompress chaindata from ${CHAINDATA_URL}"
             wget -cq "${CHAINDATA_URL}" -O - | tar -C "${CHAIN_DATA_DIR}" -zx
         else
             echo_log "Not ready to download chain data."
