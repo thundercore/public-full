@@ -115,6 +115,7 @@
 - session: 10080
   committee:
     clearingGasPriceScheme: "Top1CandidatesDecision"
+  protocol:
     baseFee: 1E+11 #100gwei
   trustedRNG:
     version: "v5"
