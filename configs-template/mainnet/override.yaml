@@ -37,8 +37,8 @@ bidder:
   bidaddress: 0x30d87bd4D1769437880c64A543bB649a693EB348 # direct bid
   amount: <BID_AMOUNT_REPLACE_ME>
   bidtxgasprice: 0
-  gasbidprice: 1E+9
-  bidtxpricemax: 1E+12
+  gasbidprice: 1E+12
+  bidtxpricemax: 2E+12
   dynamicbidamount: true
 metrics:
   address: 0.0.0.0:9201
