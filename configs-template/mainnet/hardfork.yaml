@@ -119,3 +119,13 @@
     baseFee: 1E+11 #100gwei
   trustedRNG:
     version: "v5"
+
+- session: 12089
+  committee:
+    electVersion: "r4"
+  precompiled:
+    vaultVersion: "r4"
+
+- session: 12090
+  committee:
+    rewardScheme: "on-chain-governance"
