@@ -134,7 +134,7 @@ load_chain_config(){
 
             read -p "Do you want to upgrade from ${ORI_IMAGE_VERSION} to ${NEW_IMAGE_VERSION}?(y/n): " FORCERELOAD
 
-            if [[ "${FORCERELOAD}" == "y" ]]; then
+            if [[ "${FORCERELOAD}" != "n" ]]; then
 
                 ORI_OVERRIDE_FILE="${DIR_PATH}/override-backup.yaml"
                 OVERRIDE_FILE="${CHAIN_CONFIG_DIR}/override.yaml"
